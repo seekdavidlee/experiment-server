@@ -58,7 +58,17 @@ public class ExperimentLog
 
 public class ExperimentMetric
 {
+    public Guid ResultId { get; set; }
     public string? Name { get; set; }
     public double? Value { get; set; }
     public Dictionary<string, string>? Meta { get; set; }
+}
+
+public class ExperimentRunResult
+{
+    public Guid Id { get; set; }
+    public string? Text { get; set; }
+    public int CompletionTokens { get; set; }
+    public int PromptTokens { get; set; }
+    public int TotalTokens { get; set; }
 }

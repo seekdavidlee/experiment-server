@@ -28,31 +28,56 @@ public partial class ExperimentRunDetail
 
     private List<ExperimentLog>? Logs { get; set; }
 
+    private List<ExperimentRunResult>? Results { get; set; }
+
+    private List<ExperimentMetric>? Metrics { get; set; }
+
     private string? ErrorMessage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        if (UserSession!.Items.TryGetValue(nameof(ExperimentRun), out var modelObj))
-        {
-            model = (ExperimentRun)modelObj;
-
-            Logs = await Client!.GetExperimentRunLogsAsync(ProjectId, ExperimentId, RunId);
-        }
+        await RefreshAsync(true);
     }
 
-    public async Task RefreshAsync()
+    public async Task RefreshAsync(bool useSessionModel)
     {
         ErrorMessage = null;
-        var response = await Client!.GetExperimentRunAsync(ProjectId, ExperimentId, RunId);
-        if (response.Success)
+
+        bool foundSessionModel = false;
+        if (useSessionModel && UserSession!.Items.TryGetValue(nameof(ExperimentRun), out var modelObj) && modelObj is not null)
         {
-            model = response.Result;
+            model = (ExperimentRun)modelObj;
+            foundSessionModel = true;
         }
+
+        if (!foundSessionModel)
+        {
+            var response = await Client!.GetExperimentRunAsync(ProjectId, ExperimentId, RunId);
+            if (response.Success)
+            {
+                model = response.Result;
+            }
+            else
+            {
+                ErrorMessage = "Failed to load experiment run.";
+                return;
+            }
+        }
+
         Logs = await Client!.GetExperimentRunLogsAsync(ProjectId, ExperimentId, RunId);
+        Results = await Client!.GetExperimentRunResultsAsync(ProjectId, ExperimentId, RunId);
+        Metrics = await Client!.GetExperimentRunMetricsAsync(ProjectId, ExperimentId, RunId);
     }
 
     private void Back()
     {
         NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs");
+    }
+
+    public async Task OpenImageAsync(ExperimentRunResult result, ExperimentMetric metric)
+    {
+        UserSession!.Items[nameof(ExperimentRunResult)] = result;
+        UserSession!.Items[nameof(ExperimentMetric)] = metric;
+        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{RunId}/detail");
     }
 }

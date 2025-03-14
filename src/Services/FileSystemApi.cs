@@ -31,20 +31,6 @@ public class FileSystemApi
         return $"{FILE_PATH_PREFIX}/datasets/{dataSetId}/";
     }
 
-    public async Task<List<GroundTruthReference>> GetGroundTruthReferencesAsync()
-    {
-        var path = $"{PATH_PREFIX}/ground-truths/references/{Constants.ImageInferenceTypes.Receipts}.json";
-        var response = await httpClient!.GetAsync(path);
-        if (response.IsSuccessStatusCode)
-        {
-            return await response.DeserializeResponse<List<GroundTruthReference>>();
-        }
-
-        var content = await response.Content.ReadAsStringAsync();
-        logger.LogError("error: {content}, http status: {status}", content, response.StatusCode);
-        return [];
-    }
-
     public async Task<List<DataSetModel>> GetDataSetsAsync()
     {
         var response = await httpClient!.GetAsync(datasetsFilePath);
@@ -99,18 +85,6 @@ public class FileSystemApi
         };
 
         return new ApiResponse(true, default);
-    }
-
-    public async Task SaveGroundTruthAsync(GroundTruth groundTruth)
-    {
-        var json = JsonSerializer.Serialize(groundTruth);
-        var response = await httpClient.PutAsync($"{PATH_PREFIX}/ground-truths/items/{Constants.ImageInferenceTypes.Receipts}/{groundTruth.Id}.json", new StringContent(json));
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            logger.LogError("error: {content}, http status: {status}", content, response.StatusCode);
-        }
     }
 
     public async Task<Prompts> GetPromptsAsync()
@@ -280,6 +254,28 @@ public class FileSystemApi
         return new ApiResponse<byte[]>(false, "unable to read response", []);
     }
 
+    public async Task<ApiResponse<byte[]>> GetImageAsync(string path)
+    {
+        try
+        {
+            var results = await httpClient!.GetByteArrayAsync($"{config.FileSystemApi}/storage/files/object?path={path}");
+            if (results is not null)
+            {
+                return new ApiResponse<byte[]>(true, default, results);
+            }
+        }
+        catch (HttpRequestException e)
+        {
+            if (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ApiResponse<byte[]>(true, default, []);
+            }
+            return new ApiResponse<byte[]>(false, e.ToString(), []);
+        }
+
+        return new ApiResponse<byte[]>(false, "unable to read response", []);
+    }
+
     public async Task<List<ExperimentLog>> GetExperimentRunLogsAsync(Guid projectId, Guid experimentId, Guid runId)
     {
         List<ExperimentLog> logs = [];
@@ -311,6 +307,79 @@ public class FileSystemApi
 
 
         return logs;
+    }
+
+    public async Task<List<ExperimentRunResult>> GetExperimentRunResultsAsync(Guid projectId, Guid experimentId, Guid runId)
+    {
+        List<ExperimentRunResult> items = [];
+        try
+        {
+            var results = await httpClient!.GetFromJsonAsync<string[]>($"{GetExperimentRunsPath(projectId, experimentId, true)}/{runId}/results");
+            if (results is null || results.Length == 0) return [];
+
+            // todo: implement paging
+            foreach (var path in results.OrderBy(GetFileNumber))
+            {
+                var item = await httpClient!.GetFromJsonAsync<ExperimentRunResult>($"{config.FileSystemApi}/storage/files/object?path={path}");
+                if (item is not null)
+                {
+                    items.Add(item);
+                }
+            }
+
+            return items;
+        }
+        catch (HttpRequestException ex)
+        {
+            if (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return [];
+            }
+            logger.LogError(ex, "error: failed to get experiment run results");
+        }
+
+
+        return items;
+    }
+
+    private static long GetFileNumber(string path)
+    {
+        var index = path.LastIndexOf('/');
+        var name = path[(index + 1)..].Replace(".json", "");
+        return long.Parse(name);
+    }
+
+    public async Task<List<ExperimentMetric>> GetExperimentRunMetricsAsync(Guid projectId, Guid experimentId, Guid runId)
+    {
+        List<ExperimentMetric> items = [];
+        try
+        {
+            var results = await httpClient!.GetFromJsonAsync<string[]>($"{GetExperimentRunsPath(projectId, experimentId, true)}/{runId}/metrics");
+            if (results is null || results.Length == 0) return [];
+
+            // todo: implement paging
+            foreach (var path in results.OrderBy(GetFileNumber))
+            {
+                var item = await httpClient!.GetFromJsonAsync<ExperimentMetric>($"{config.FileSystemApi}/storage/files/object?path={path}");
+                if (item is not null)
+                {
+                    items.Add(item);
+                }
+            }
+
+            return items;
+        }
+        catch (HttpRequestException ex)
+        {
+            if (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return [];
+            }
+            logger.LogError(ex, "error: failed to get experiment run metrics");
+        }
+
+
+        return items;
     }
 
     public async Task<List<ExperimentRun>> GetExperimentRunsAsync(Guid projectId, Guid experimentId)
@@ -349,7 +418,7 @@ public class FileSystemApi
     {
         try
         {
-            string path = $"{config.Environment}/experiment-server/{GetExperimentRunsPath(projectId, experimentId, true)}/{id}/run.json";
+            string path = $"{GetExperimentRunsPath(projectId, experimentId, false)}/{id}/run.json";
             var run = await httpClient!.GetFromJsonAsync<ExperimentRun>($"{config.FileSystemApi}/storage/files/object?path={path}");
             if (run is not null)
             {

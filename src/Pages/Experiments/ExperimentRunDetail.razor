@@ -15,7 +15,7 @@
             </RadzenColumn>
             <RadzenColumn SizeMD="11">
                 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
-                    <RadzenButton Click=@(args => RefreshAsync()) Text="Refresh" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Click=@(args => RefreshAsync(false)) Text="Refresh" ButtonStyle="ButtonStyle.Primary" />
                     <RadzenButton Click=@(args => Back()) Text="Back" ButtonStyle="ButtonStyle.Primary" />
                 </RadzenStack>
             </RadzenColumn>
@@ -82,6 +82,51 @@
                                         <td>@log.Message</td>
                                     </tr>
                                 }
+                            </table>
+                        }
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow>
+                    <RadzenColumn>
+                        @if (Results is not null)
+                        {
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <td style="width:100%"><h3>Text</h3></td>
+                                        <td style="width:150px"><h3>Time Taken (Milliseconds)</h3></td>
+                                        <td style="width:150px"><h3>Prompt Tokens</h3></td>
+                                        <td style="width:150px"><h3>Completion Tokens</h3></td>
+                                        <td style="width:150px"><h3>Total Tokens</h3></td>
+                                        <td style="width:150px"><h3>Options</h3></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var result in Results)
+                                    {
+                                        var metric = Metrics!.SingleOrDefault(x => x.ResultId == result.Id && x.Name == "inference_time");
+                                        <tr>
+                                            <td>@result.Text</td>
+                                            @if (metric is not null)
+                                            {
+                                                <td>@metric.Value</td>
+                                            }
+                                            else
+                                            {
+                                                <td style="color:red">missing!</td>
+                                            }
+                                            <td>@(result.PromptTokens)</td>
+                                            <td>@(result.CompletionTokens)</td>
+                                            <td>@(result.TotalTokens)</td>
+                                            <td>
+                                                @if (metric is not null)
+                                                {
+                                                    <RadzenButton Click=@(args => OpenImageAsync(result, metric)) Text="Show Image" ButtonStyle="ButtonStyle.Secondary" />
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
                             </table>
                         }
                     </RadzenColumn>
