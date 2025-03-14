@@ -1,0 +1,28 @@
+﻿<RadzenPanel Class="rz-my-10 rz-mx-auto">
+    <HeaderTemplate>
+        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+            <RadzenIcon Icon="upload_file" class="rz-mr-1" /><b>Details</b>
+        </RadzenText>
+    </HeaderTemplate>
+    <ChildContent>
+        <RadzenStack Style="width:100%">
+            <RadzenRow Style="width:100%">
+                <RadzenCard Style="width:100%">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">System Prompt</RadzenText>
+                    <div>
+                        @Model?.SystemPrompt
+                    </div>
+
+                </RadzenCard>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenCard Style="width:100%">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">User Prompt</RadzenText>
+                    <div>
+                        @Model?.UserPrompt
+                    </div>
+                </RadzenCard>
+            </RadzenRow>
+        </RadzenStack>
+    </ChildContent>
+</RadzenPanel>

@@ -1,0 +1,38 @@
+﻿@inject NavigationManager NavigationManager;
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" AlignItems="AlignItems.Center">
+    @if (Exception is not null)
+    {
+        <RadzenAlert Title="Something went wrong. We sincerely apologize for this. Please share this error message with our support team." Variant=Variant.Filled AlertStyle=AlertStyle.Danger Size=AlertSize.Medium Shade="Shade.Light" AllowClose=false>
+            <RadzenButton ButtonType="ButtonType.Button" Click=@ToogleErrorMessage Size="ButtonSize.Small" Icon="hide" Text=@ShowHideErrorButtonText title="Show/Hide error details" />
+            @if (!HideErrorMessage)
+            {
+                <br />
+                <p>@Exception.ToString()</p>
+            }
+        </RadzenAlert>
+    }
+    <RadzenStack Orientation=Orientation.Horizontal AlignItems="AlignItems.Center">
+        <RadzenButton ButtonType="ButtonType.Button" Click=@Reload Size="ButtonSize.Large" Icon="refresh" Text="Reload" title="Reload" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+
+    [Parameter]
+    public Exception? Exception { get; set; }
+
+    bool HideErrorMessage = false;
+    string ShowHideErrorButtonText = "Hide error details";
+
+    void ToogleErrorMessage()
+    {
+        HideErrorMessage = !HideErrorMessage;
+        ShowHideErrorButtonText = HideErrorMessage ? "Show error details" : "Hide error details";
+    }
+
+    void Reload()
+    {
+        NavigationManager.NavigateTo("/", true);
+    }
+}

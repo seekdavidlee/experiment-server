@@ -1,0 +1,122 @@
+﻿@using ExperimentServer
+@using ExperimentServer.Models
+@using ExperimentServer.Shared
+<RadzenStack>
+    <RadzenRow Style="width:100%">
+        <RadzenCard Style="width:100%">
+            <RadzenStack Style="width:100%">
+                <RadzenRow Style="width:100%">
+                    <RadzenColumn Size="8">
+                        <RadzenTabs @bind-SelectedIndex=@model.NewGroundTruthModel.SelectedTabIndex TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Client">
+                            <Tabs>
+                                <RadzenTabsItem Text="Prompts">
+                                    <RadzenStack Style="width:100%">
+                                        <RadzenRow Style="width:100%">
+                                            <RadzenCard Style="width:100%">
+                                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">System Prompt</RadzenText>
+                                                <RadzenTextArea Rows="5" Cols="5" @bind-Value="@model.NewGroundTruthModel.SystemPrompt" Style="width: 100%" />
+                                            </RadzenCard>
+                                        </RadzenRow>
+                                        <RadzenRow>
+                                            <RadzenCard Style="width:100%">
+                                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">User Prompt</RadzenText>
+                                                <RadzenTextArea Rows="5" Cols="5" @bind-Value="@model.NewGroundTruthModel.UserPrompt" Style="width: 100%" />
+                                            </RadzenCard>
+                                        </RadzenRow>
+                                        <RadzenRow>
+                                            <div style="width:100%">
+                                                <RadzenButton Text="Update" Click=@(async()=>await UpdatePromptsAsync()) ButtonStyle="ButtonStyle.Primary" />
+                                            </div>
+                                        </RadzenRow>
+                                    </RadzenStack>
+                                </RadzenTabsItem>
+                                <RadzenTabsItem Text="Results">
+                                    <RadzenDataGrid @ref=@dataGrid ColumnWidth="200px" AllowFiltering="true" AllowPaging="true" AllowSorting="true" Data="@model.NewGroundTruthModel.InferenceResults" TItem="ImageInferenceResult">
+                                        <HeaderTemplate>
+                                            <RadzenRow RowGap="0" Style="width:100%">
+                                                <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                                                    <RadzenIcon Icon="gavel" class="rz-mr-1" /><b>Results</b>
+                                                </RadzenText>
+                                            </RadzenRow>
+                                        </HeaderTemplate>
+                                        <Columns>
+                                            <RadzenDataGridColumn TItem="ImageInferenceResult" Title="Inference Text" Width="50px">
+                                                <Template Context="entry">
+                                                    <div class="rz-text-wrap" style="width: 100%;">
+                                                        @entry.Text
+                                                    </div>
+                                                </Template>
+                                            </RadzenDataGridColumn>
+                                            <RadzenDataGridColumn TItem="ImageInferenceResult" Title="Duration (secs)" Width="10px">
+                                                <Template Context="entry">
+                                                    @entry.DurationInSeconds
+                                                </Template>
+                                            </RadzenDataGridColumn>
+                                            <RadzenDataGridColumn TItem="ImageInferenceResult" Title="Details" Width="10px">
+                                                <Template Context="entry">
+                                                    <RadzenButton Text="Details" ButtonStyle="ButtonStyle.Info" Click=@(()=>ShowDetails(entry)) />
+                                                </Template>
+                                            </RadzenDataGridColumn>
+                                        </Columns>
+                                    </RadzenDataGrid>
+                                </RadzenTabsItem>
+                                <RadzenTabsItem Text="Save">
+                                    <RadzenCard Style="width:100%">
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Answer</RadzenText>
+                                        <RadzenTextArea Rows="5" Cols="5" @bind-Value="@model.NewGroundTruthModel.Answer" Style="width: 100%"></RadzenTextArea>
+                                    </RadzenCard>
+                                </RadzenTabsItem>
+                            </Tabs>
+                        </RadzenTabs>
+                    </RadzenColumn>
+                    <RadzenColumn Size="4">
+                        @if (model.NewGroundTruthModel.Base64Images is null || model.NewGroundTruthModel.Base64Images.Length == 0)
+                        {
+                            <RadzenCard>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Upload image</RadzenText>
+                                <InputFile Style="margin-top:5px;" OnChange="@InputFileChange" />
+                            </RadzenCard>
+                        }
+                        else
+                        {
+                            <RadzenStack>
+                                <RadzenRow>
+                                    @if (model.NewGroundTruthModel.Base64Images is not null && model.NewGroundTruthModel.Base64Images.Length > 0)
+                                    {
+                                        <RadzenImage Click="async ()=>await OpenImageAsync()" Path="@model?.NewGroundTruthModel.Base64Images[PageCounter]" alt="Uploaded Image" Style="max-width: 400px; max-height: 400px;" />
+                                    }
+                                    else
+                                    {
+                                        <p><b>@model.NewGroundTruthModel.ImageFilename</b> of content-type @model.NewGroundTruthModel.ImageFileContentType is not shown</p>
+                                    }
+                                </RadzenRow>
+                                <RadzenRow>
+                                    @if (model.NewGroundTruthModel.IsProcessing)
+                                    {
+                                        <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Processing @model.NewGroundTruthModel.ImageFilename</RadzenText>
+                                    }
+                                    else
+                                    {
+                                        <RadzenButton Click="()=> PageCounter++" Text="Next" Disabled="PageCounter == model?.NewGroundTruthModel.Base64Images.Length - 1" />
+                                        <RadzenButton Click="()=> PageCounter--" Text="Back" Disabled="PageCounter == 0" />
+                                        <RadzenButton Click=@(async args => await RunInferenceAsync()) Text="Run Inference" ButtonStyle="ButtonStyle.Primary" />
+                                        <RadzenButton Click=@(args => DiscardImage()) Text="Discard" ButtonStyle="ButtonStyle.Light" />
+                                    }
+                                </RadzenRow>
+                            </RadzenStack>
+                        }
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow AlignItems="AlignItems.End">
+                    @if (model.NewGroundTruthModel.Answer is not null)
+                    {
+                        <RadzenButton Click=@Save Text="Save" ButtonStyle="ButtonStyle.Primary" />
+                    }
+                    <RadzenButton Click=@(args => CancelAdd()) Text="Cancel" ButtonStyle="ButtonStyle.Light" />
+                </RadzenRow>
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenRow>
+</RadzenStack>
+

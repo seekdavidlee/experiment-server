@@ -1,0 +1,37 @@
+﻿@page "/datasets"
+@using ExperimentServer.Models
+
+<RadzenStack>
+    <RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
+            <RadzenButton Click=@(args => AddNew()) Text="New" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(args => RefreshAsync()) Text="Refresh" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenStack>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenDataGrid @ref="@dataGrid" ColumnWidth="200px" AllowFiltering="true" AllowPaging="true" AllowSorting="true" Data="@model.Items">
+            <HeaderTemplate>
+                <RadzenRow RowGap="0" Style="width:100%">
+                    <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                        <RadzenIcon Icon="gavel" class="rz-mr-1" /><b>DataSets</b>
+                    </RadzenText>
+                </RadzenRow>
+            </HeaderTemplate>
+            <Columns>
+                <RadzenDataGridColumn TItem="DataSetModel" Title="" Width="50px">
+                    <Template Context="entry">
+                        @{
+                            var path = $"projects/{entry.Id}/dataset";
+                            <RadzenLink Text=@entry.DisplayName Path=@path />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="DataSetModel" Title="Options" Width="20px">
+                    <Template Context="entry">
+                        <RadzenButton Text="Edit" Click="()=>Edit(entry)" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenRow>
+</RadzenStack>

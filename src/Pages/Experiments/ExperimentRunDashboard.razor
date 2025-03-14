@@ -1,0 +1,52 @@
+﻿@page "/projects/{ProjectId:guid}/experiments/{ExperimentId:guid}/runs"
+@using ExperimentServer.Models
+@using ExperimentServer.Shared
+<RadzenStack>
+    <RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
+            <RadzenButton Click=@(args => RunAsync()) Text="New run" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(args => RefreshAsync()) Text="Refresh" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Text="Compare" ButtonStyle="ButtonStyle.Primary" Disabled="!model.Items.Any(x=>x.IsSelected)" />
+        </RadzenStack>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenDataGrid @ref="@dataGrid" ColumnWidth="200px" AllowFiltering="true" AllowPaging="true" AllowSorting="true" Data="@model.Items">
+            <HeaderTemplate>
+                <RadzenRow RowGap="0" Style="width:100%">
+                    <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                        <RadzenIcon Icon="gavel" class="rz-mr-1" /><b>Runs</b>
+                    </RadzenText>
+                </RadzenRow>
+            </HeaderTemplate>
+            <Columns>
+                <RadzenDataGridColumn TItem="ExperimentRunModel" Width="20px">
+                    <Template Context="entry">
+                        <RadzenCheckBox @bind-Value="entry.IsSelected" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ExperimentRunModel" Title="Start" Width="20px">
+                    <Template Context="entry">
+                        @entry.Value!.Start
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ExperimentRunModel" Title="End" Width="20px">
+                    <Template Context="entry">
+                        @if (entry.Value!.End is null)
+                        {
+                            <span>running...</span>
+                        }
+                        else
+                        {
+                            <span>@entry.Value!.End</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ExperimentRunModel" Title="" Width="50px">
+                    <Template Context="entry">
+                        <RadzenButton Click=@(args => View(entry.Value!)) Text="View" ButtonStyle="ButtonStyle.Primary" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenRow>
+</RadzenStack>

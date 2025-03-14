@@ -1,0 +1,31 @@
+﻿<RadzenStack Style="width:100%">
+    @if (ErrorMessage is not null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+            @ErrorMessage
+        </RadzenAlert>
+    }
+    @if (IsSaving)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter">
+            Saving dataset...
+        </RadzenAlert>
+    }
+    @if (Model is not null)
+    {
+        <RadzenRow AlignItems="AlignItems.Center">
+            <RadzenColumn Size="12" SizeMD="4">
+                <RadzenLabel Text="Name" title="Name" />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="8">
+                <RadzenTextBox Disabled=@IsSaving Style="width: 100%;" Name="Name" @bind-Value=@Model.DisplayName />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Gap="2rem" Class="rz-p-0 rz-p-lg-4">
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+                <RadzenButton Disabled=@IsSaving ButtonStyle="ButtonStyle.Primary" Click=@(async()=>await SaveAsync()) Size="ButtonSize.Large" Icon="save" Text="Save" />
+                <RadzenButton Disabled=@IsSaving ButtonStyle=ButtonStyle.Light Click=@Cancel Size="ButtonSize.Large" Text="Cancel" />
+            </RadzenStack>
+        </RadzenRow>
+    }
+</RadzenStack>

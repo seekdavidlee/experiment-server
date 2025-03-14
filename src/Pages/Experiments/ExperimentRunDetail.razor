@@ -1,0 +1,83 @@
+﻿@page "/projects/{ProjectId:guid}/experiments/{ExperimentId:guid}/runs/{RunId:guid}"
+
+<RadzenPanel>
+    <HeaderTemplate>
+        <RadzenRow RowGap="0" Style="width:100%">
+            <RadzenColumn SizeMD="9">
+                <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenIcon Icon="home" class="rz-mr-1" /><b>Details</b>
+                </RadzenText>
+            </RadzenColumn>
+            <RadzenColumn SizeMD="3">
+            </RadzenColumn>
+        </RadzenRow>
+    </HeaderTemplate>
+    <ChildContent>
+        <RadzenCard class="rz-mt-4">
+            @if (model is not null)
+            {
+                <RadzenRow>
+                    <RadzenColumn>
+                        <table>
+                            <tr>
+                                <td>Run Id</td>
+                                <td>@model.Id.ToString()</td>
+                            </tr>
+                            <tr>
+                                <td>Start</td>
+                                <td>@model.Start.ToString()</td>
+                            </tr>
+                            <tr>
+                                <td>End</td>
+                                <td>@model.End.ToString()</td>
+                            </tr>
+                            <tr>
+                                <td>Model Id</td>
+                                <td>@model.ModelId</td>
+                            </tr>
+                            <tr>
+                                <td>System Prompt</td>
+                                <td>@model.SystemPrompt</td>
+                            </tr>
+                            <tr>
+                                <td>User Prompt</td>
+                                <td>@model.UserPrompt</td>
+                            </tr>
+                            <tr>
+                                <td>Iterations</td>
+                                <td>@model.Iterations.ToString()</td>
+                            </tr>
+                            <tr>
+                                <td>Max Tokens</td>
+                                <td>@model.MaxTokens.ToString()</td>
+                            </tr>
+                            <tr>
+                                <td>Temperature</td>
+                                <td>@model.Temperature.ToString()</td>
+                            </tr>
+                            <tr>
+                                <td>TopP</td>
+                                <td>@model.TopP.ToString()</td>
+                            </tr>
+                        </table>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        @if (Logs is not null)
+                        {
+                            <table>
+                                @foreach (var log in Logs)
+                                {
+                                    <tr>
+                                        <td>@log.Created!.Value.ToString()</td>
+                                        <td>@log.Level</td>
+                                        <td>@log.Message</td>
+                                    </tr>
+                                }
+                            </table>
+                        }
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+        </RadzenCard>
+    </ChildContent>
+</RadzenPanel>

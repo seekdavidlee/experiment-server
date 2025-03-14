@@ -1,0 +1,8 @@
+{
+	"Environment": "dev",
+	"ApiBaseUrl": "",
+	"FileSystemApi": "",
+	"ImageConversionApi": "",
+	"FileSystemImagePath": ""
+}
+
