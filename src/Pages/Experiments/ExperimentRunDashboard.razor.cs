@@ -33,6 +33,8 @@ public partial class ExperimentRunDashboard
 
     private ExperimentModel? experimentModel;
 
+    private string? ErrorMessage { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if (UserSession!.Items.TryGetValue(nameof(ExperimentModel), out var experimentModelOut))
@@ -77,5 +79,23 @@ public partial class ExperimentRunDashboard
         var path = $"projects/{ProjectId}/experiments/{ExperimentId}/runs/{experimentRun.Id}";
         UserSession!.Items[nameof(ExperimentRun)] = experimentRun;
         NavigationManager!.NavigateTo(path);
+    }
+
+    private async Task DeleteAsync(ExperimentRun experimentRun)
+    {
+        ErrorMessage = null;
+        var result = await DialogService!.Confirm($"Are you sure you want to delete {experimentRun.Id}?", "Delete run", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+        if (result is not null && result == true)
+        {
+            var response = await Client!.DeleteExperimentRunAsync(ProjectId, ExperimentId, experimentRun.Id);
+            if (response.Success)
+            {
+                await RefreshAsync();
+            }
+            else
+            {
+                ErrorMessage = response.ErrorMessage;
+            }
+        }
     }
 }

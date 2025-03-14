@@ -434,4 +434,25 @@ public class FileSystemApi
 
         return new ApiResponse<ExperimentRun?>(false, "unable to read response", default);
     }
+
+    public async Task<ApiResponse> DeleteExperimentRunAsync(Guid projectId, Guid experimentId, Guid id)
+    {
+        try
+        {
+            string path = $"{GetExperimentRunsPath(projectId, experimentId, false)}/{id}/";
+            var response = await httpClient!.DeleteAsync($"{config.FileSystemApi}/storage/files?path={path}");
+            if (response.IsSuccessStatusCode)
+            {
+                return new ApiResponse(true, default);
+            }
+
+            return new ApiResponse(false, $"error: {response.StatusCode}");
+
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "error: failed to delete experiment run");
+            return new ApiResponse(false, ex.ToString());
+        }
+    }
 }
