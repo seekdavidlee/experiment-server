@@ -455,4 +455,24 @@ public class FileSystemApi
             return new ApiResponse(false, ex.ToString());
         }
     }
+
+    public async Task<ApiResponse> DeleteDatasetAsync(Guid id)
+    {
+        try
+        {
+            var response = await httpClient!.DeleteAsync($"{FILE_PATH_PREFIX}/datasets/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                return new ApiResponse(true, default);
+            }
+
+            return new ApiResponse(false, $"error: {response.StatusCode}");
+
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "error: failed to delete experiment run");
+            return new ApiResponse(false, ex.ToString());
+        }
+    }
 }

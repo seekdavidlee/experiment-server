@@ -1,6 +1,11 @@
 ﻿@page "/datasets"
 @using ExperimentServer.Models
-
+@if (ErrorMessage is not null)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+        @ErrorMessage
+    </RadzenAlert>
+}
 <RadzenStack>
     <RadzenRow>
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
@@ -18,11 +23,12 @@
                 </RadzenRow>
             </HeaderTemplate>
             <Columns>
-                <RadzenDataGridColumn TItem="DataSetModel" Title="Name" Property="DisplayName" Width="50px"/>
+                <RadzenDataGridColumn TItem="DataSetModel" Title="Name" Property="DisplayName" Width="50px" />
                 <RadzenDataGridColumn TItem="DataSetModel" Title="Options" Width="20px">
                     <Template Context="entry">
                         <RadzenButton Text="Open" Click="()=>OpenDataset(entry)" />
-                        <RadzenButton Text="Edit" Click="()=>Edit(entry)" />                      
+                        <RadzenButton Text="Edit" Click="()=>Edit(entry)" />
+                        <RadzenButton Click=@(args => DeleteAsync(entry)) Text="Delete" ButtonStyle="ButtonStyle.Danger" />
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>

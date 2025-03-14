@@ -10,6 +10,7 @@ namespace ExperimentServer.Pages.Datasets;
 
 public partial class DataSetDashboard
 {
+    private string? ErrorMessage { get; set; }
     private RadzenDataGrid<DataSetModel>? dataGrid;
 
     private readonly DataSetDashboardModel model = new();
@@ -85,6 +86,32 @@ public partial class DataSetDashboard
         if (result == true)
         {
             await RefreshAsync();
+        }
+    }
+
+    private async Task DeleteAsync(DataSetModel dataSetModel)
+    {
+        ErrorMessage = null;
+        var result = await DialogService!.Confirm($"Are you sure you want to delete {dataSetModel.DisplayName}?", "Delete dataset", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+        if (result is not null && result == true)
+        {
+            var updateMetaResponse = await Client!.SaveDataSetsAsync(model!.Items.Where(x => x.Id != dataSetModel.Id).ToList());
+            if (updateMetaResponse.Success)
+            {
+                var response = await Client!.DeleteDatasetAsync(dataSetModel.Id);
+                if (response.Success)
+                {
+                    await RefreshAsync();
+                }
+                else
+                {
+                    ErrorMessage = response.ErrorMessage;
+                }
+            }
+            else
+            {
+                ErrorMessage = updateMetaResponse.ErrorMessage;
+            }
         }
     }
 }
