@@ -19,6 +19,12 @@ public partial class ProjectsDashboard
     [Inject]
     private DialogService? DialogService { get; set; }
 
+    [Inject]
+    private NavigationManager? NavigationManager { get; set; }
+
+    [Inject]
+    private UserSession? UserSession { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await RefreshAsync();
@@ -29,6 +35,13 @@ public partial class ProjectsDashboard
         model.Items.Clear();
         model.Items.AddRange(await Client!.GetProjectsAsync());
         await dataGrid!.Reload();
+    }
+
+    private void Open(ProjectModel projectModel)
+    {
+        var path = $"projects/{projectModel.Id}/experiments";
+        UserSession!.Items[nameof(ProjectModel)] = projectModel;
+        NavigationManager!.NavigateTo(path);
     }
 
     private async Task Edit(ProjectModel projectModel)

@@ -20,14 +20,12 @@
             <Columns>
                 <RadzenDataGridColumn TItem="ProjectModel" Title="" Width="50px">
                     <Template Context="entry">
-                        @{
-                            var path = $"projects/{entry.Id}/experiments";
-                            <RadzenLink Text=@entry.DisplayName Path=@path />
-                        }
+                        <span>@entry.DisplayName</span>
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="ProjectModel" Title="Options" Width="20px">
                     <Template Context="entry">
+                        <RadzenButton Text="Open" Click="()=>Open(entry)" />
                         <RadzenButton Text="Edit" Click="()=>Edit(entry)" />
                     </Template>
                 </RadzenDataGridColumn>

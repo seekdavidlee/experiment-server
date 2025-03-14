@@ -28,8 +28,14 @@ public partial class ExperimentsDashboard
     [Parameter]
     public Guid ProjectId { get; set; }
 
+    private ProjectModel? projectModel;
+
     protected override async Task OnInitializedAsync()
     {
+        if (UserSession!.Items.TryGetValue(nameof(ProjectModel), out var projectModelOut))
+        {
+            projectModel = (ProjectModel)projectModelOut;
+        }
         await RefreshAsync();
     }
 

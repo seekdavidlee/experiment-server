@@ -72,7 +72,7 @@ public partial class ExperimentRunDashboard
         await dataGrid!.Reload();
     }
 
-    private async Task View(ExperimentRun experimentRun)
+    private void View(ExperimentRun experimentRun)
     {
         var path = $"projects/{ProjectId}/experiments/{ExperimentId}/runs/{experimentRun.Id}";
         UserSession!.Items[nameof(ExperimentRun)] = experimentRun;

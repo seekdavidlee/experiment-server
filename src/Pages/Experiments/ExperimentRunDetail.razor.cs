@@ -21,9 +21,14 @@ public partial class ExperimentRunDetail
     [Inject]
     private FileSystemApi? Client { get; set; }
 
+    [Inject]
+    private NavigationManager? NavigationManager { get; set; }
+
     private ExperimentRun? model;
 
     private List<ExperimentLog>? Logs { get; set; }
+
+    private string? ErrorMessage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -33,5 +38,21 @@ public partial class ExperimentRunDetail
 
             Logs = await Client!.GetExperimentRunLogsAsync(ProjectId, ExperimentId, RunId);
         }
+    }
+
+    public async Task RefreshAsync()
+    {
+        ErrorMessage = null;
+        var response = await Client!.GetExperimentRunAsync(ProjectId, ExperimentId, RunId);
+        if (response.Success)
+        {
+            model = response.Result;
+        }
+        Logs = await Client!.GetExperimentRunLogsAsync(ProjectId, ExperimentId, RunId);
+    }
+
+    private void Back()
+    {
+        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs");
     }
 }

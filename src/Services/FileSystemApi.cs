@@ -344,4 +344,25 @@ public class FileSystemApi
         }
         return runs;
     }
+
+    public async Task<ApiResponse<ExperimentRun?>> GetExperimentRunAsync(Guid projectId, Guid experimentId, Guid id)
+    {
+        try
+        {
+            string path = $"{config.Environment}/experiment-server/{GetExperimentRunsPath(projectId, experimentId, true)}/{id}/run.json";
+            var run = await httpClient!.GetFromJsonAsync<ExperimentRun>($"{config.FileSystemApi}/storage/files/object?path={path}");
+            if (run is not null)
+            {
+                return new ApiResponse<ExperimentRun?>(true, default, run);
+            }
+
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "error: failed to get experiments");
+            return new ApiResponse<ExperimentRun?>(false, ex.ToString(), default);
+        }
+
+        return new ApiResponse<ExperimentRun?>(false, "unable to read response", default);
+    }
 }

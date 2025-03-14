@@ -1,14 +1,23 @@
 ﻿@page "/projects/{ProjectId:guid}/experiments/{ExperimentId:guid}/runs/{RunId:guid}"
-
+@if (ErrorMessage is not null)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+        @ErrorMessage
+    </RadzenAlert>
+}
 <RadzenPanel>
     <HeaderTemplate>
         <RadzenRow RowGap="0" Style="width:100%">
-            <RadzenColumn SizeMD="9">
+            <RadzenColumn SizeMD="1">
                 <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
                     <RadzenIcon Icon="home" class="rz-mr-1" /><b>Details</b>
                 </RadzenText>
             </RadzenColumn>
-            <RadzenColumn SizeMD="3">
+            <RadzenColumn SizeMD="11">
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
+                    <RadzenButton Click=@(args => RefreshAsync()) Text="Refresh" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Click=@(args => Back()) Text="Back" ButtonStyle="ButtonStyle.Primary" />
+                </RadzenStack>
             </RadzenColumn>
         </RadzenRow>
     </HeaderTemplate>
