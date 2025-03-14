@@ -14,7 +14,7 @@ var httpClient = new HttpClient
 {
     BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
 };
-var data = await httpClient.GetStringAsync("/Data/app.json");
+var data = await httpClient.GetStringAsync($"/Data/app.json?v={Guid.NewGuid()}");
 var config = JsonSerializer.Deserialize<Config>(data)!;
 builder.Services.AddSingleton(config);
 
