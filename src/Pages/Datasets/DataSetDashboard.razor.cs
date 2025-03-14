@@ -19,6 +19,12 @@ public partial class DataSetDashboard
     [Inject]
     private DialogService? DialogService { get; set; }
 
+    [Inject]
+    private NavigationManager? NavigationManager { get; set; }
+
+    [Inject]
+    private UserSession? UserSession { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await RefreshAsync();
@@ -29,6 +35,13 @@ public partial class DataSetDashboard
         model.Items.Clear();
         model.Items.AddRange(await Client!.GetDataSetsAsync());
         await dataGrid!.Reload();
+    }
+
+    private void OpenDataset(DataSetModel datasetModel)
+    {
+        var path = $"datasets/{datasetModel.Id}";
+        UserSession!.Items[nameof(DataSetModel)] = datasetModel;
+        NavigationManager!.NavigateTo(path);
     }
 
     private async Task Edit(DataSetModel datasetModel)

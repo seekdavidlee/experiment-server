@@ -1,6 +1,10 @@
 ﻿@page "/projects/{ProjectId:guid}/experiments/{ExperimentId:guid}/runs"
 @using ExperimentServer.Models
 @using ExperimentServer.Shared
+@if (experimentModel is not null)
+{
+    <PageTitle>@experimentModel.Name runs</PageTitle>
+}
 <RadzenStack>
     <RadzenRow>
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
@@ -14,7 +18,15 @@
             <HeaderTemplate>
                 <RadzenRow RowGap="0" Style="width:100%">
                     <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
-                        <RadzenIcon Icon="gavel" class="rz-mr-1" /><b>Runs</b>
+                        <RadzenIcon Icon="gavel" class="rz-mr-1" />
+                        @if (experimentModel is not null)
+                        {
+                            <b>@experimentModel.Name runs</b>
+                        }
+                        else
+                        {
+                            <b>Runs</b>
+                        }
                     </RadzenText>
                 </RadzenRow>
             </HeaderTemplate>

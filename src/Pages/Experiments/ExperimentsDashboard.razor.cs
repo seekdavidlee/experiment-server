@@ -19,6 +19,12 @@ public partial class ExperimentsDashboard
     [Inject]
     private DialogService? DialogService { get; set; }
 
+    [Inject]
+    private NavigationManager? NavigationManager { get; set; }
+
+    [Inject]
+    private UserSession? UserSession { get; set; }
+
     [Parameter]
     public Guid ProjectId { get; set; }
 
@@ -32,6 +38,13 @@ public partial class ExperimentsDashboard
         model.Items.Clear();
         model.Items.AddRange(await Client!.GetExperimentsAsync(ProjectId!));
         await dataGrid!.Reload();
+    }
+
+    private void Open(ExperimentModel model)
+    {
+        var path = $"projects/{ProjectId}/experiments/{model.Id}/runs";
+        UserSession!.Items[nameof(ExperimentModel)] = model;
+        NavigationManager!.NavigateTo(path);
     }
 
     private async Task Edit(ExperimentModel model)

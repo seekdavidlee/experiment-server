@@ -2,6 +2,7 @@
 using ExperimentServer.Services;
 using Microsoft.AspNetCore.Components;
 using Radzen;
+using System.Text.Json;
 
 namespace ExperimentServer.Shared;
 
@@ -23,26 +24,60 @@ public partial class EditDataSetDialog
 
     private bool IsSaving { get; set; }
 
+    private DataSetModel? WorkingCopy;
+    protected override void OnInitialized()
+    {
+        if (Model is not null)
+        {
+            WorkingCopy = JsonSerializer.Deserialize<DataSetModel>(JsonSerializer.Serialize(Model));
+        }
+    }
+
+    private string[] validExpressions = ["string", "money"];
+
     private async Task SaveAsync()
     {
-        if (Model is null || Models is null) return;
+        if (WorkingCopy is null || WorkingCopy is null) return;
 
-        if (string.IsNullOrEmpty(Model.DisplayName))
+        if (string.IsNullOrEmpty(WorkingCopy.DisplayName))
         {
             ErrorMessage = "please enter a valid display name";
             return;
         }
+
+        if (WorkingCopy.Fields is null || WorkingCopy.Fields.Length == 0)
+        {
+            ErrorMessage = "please enter at least one field";
+            return;
+        }
+
+        foreach (var field in WorkingCopy.Fields)
+        {
+            if (string.IsNullOrEmpty(field.Name) || string.IsNullOrEmpty(field.Expression))
+            {
+                ErrorMessage = "please enter a valid field name and expression";
+                return;
+            }
+
+            if (!validExpressions.Contains(field.Expression.ToLower()))
+            {
+                var all = string.Join(',', validExpressions);
+                ErrorMessage = $"invalid expression, must be one of the following: {all}";
+                return;
+            }
+        }
+
         ErrorMessage = null;
         IsSaving = true;
         StateHasChanged();
 
-        if (Model.Id == Guid.Empty)
+        if (WorkingCopy.Id == Guid.Empty)
         {
-            Model.Id = Guid.NewGuid();
+            WorkingCopy.Id = Guid.NewGuid();
         }
 
-        Models = Models.Where(x => x.Id != Model.Id).ToList();
-        Models.Add(Model);
+        Models = Models!.Where(x => x.Id != WorkingCopy.Id).ToList();
+        Models.Add(WorkingCopy);
 
         var response = await Client!.SaveDataSetsAsync(Models);
         IsSaving = false;
@@ -59,5 +94,17 @@ public partial class EditDataSetDialog
     private void Cancel()
     {
         DialogService!.Close(false);
+    }
+
+    private void NewField()
+    {
+        List<DataSetModelField> fields = WorkingCopy!.Fields is null ? [] : [.. WorkingCopy.Fields];
+        fields.Add(new DataSetModelField());
+        WorkingCopy.Fields = [.. fields];
+    }
+
+    private void RemoveField(DataSetModelField field)
+    {
+        WorkingCopy!.Fields = WorkingCopy.Fields!.Where(x => x != field).ToArray();
     }
 }

@@ -1,0 +1,68 @@
+﻿@page "/datasets/{DatasetId:guid}"
+@using ExperimentServer.Models
+
+<RadzenStack>
+    <RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
+            <RadzenButton Click=@(args => AddNew()) Text="New" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(args => RefreshAsync()) Text="Refresh" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenStack>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenDataGrid @ref="@dataGrid" ColumnWidth="200px" AllowFiltering="true" AllowPaging="true" AllowSorting="true" Data="@model.Items">
+            <HeaderTemplate>
+                <RadzenRow RowGap="0" Style="width:100%">
+                    <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                        <RadzenIcon Icon="gavel" class="rz-mr-1" /><b>Ground Truths</b>
+                    </RadzenText>
+                </RadzenRow>
+            </HeaderTemplate>
+            <Columns>
+                <RadzenDataGridColumn TItem="GroundTruthImage" Title="Start" Width="20px">
+                    <Template Context="entry">
+                        @entry.DisplayName
+                    </Template>
+                </RadzenDataGridColumn>
+                @foreach (var field in DataSetModel!.Fields!)
+                {
+                    <RadzenDataGridColumn TItem="GroundTruthImage" Title=@field.Name Width="20px">
+                        <Template Context="entry">
+                            @{
+                                var expectedField = entry.Fields!.SingleOrDefault(x => x.Name == field.Name);
+                                if (expectedField is not null)
+                                {
+                                    <span>@expectedField.Value</span>
+                                }
+                                else
+                                {
+                                    <span style="color: red">Missing!</span>
+                                }
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                }
+                <RadzenDataGridColumn TItem="GroundTruthImage" Title="Tags" Width="20px">
+                    <Template Context="entry">
+                        @if (entry.Tags is not null)
+                        {
+                            <table>
+                                @foreach (var tag in entry.Tags)
+                                {
+                                    <tr>
+                                        <td>@tag.Name</td>
+                                        <td>@tag.Value</td>
+                                    </tr>
+                                }
+                            </table>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="GroundTruthImage" Title="" Width="50px">
+                    <Template Context="entry">
+                        <RadzenButton Click=@(args => Edit(entry)) Text="View" ButtonStyle="ButtonStyle.Primary" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenRow>
+</RadzenStack>

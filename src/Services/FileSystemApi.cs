@@ -201,6 +201,85 @@ public class FileSystemApi
             $"{config.Environment}/experiment-server{suffix}";
     }
 
+    public async Task<List<GroundTruthImage>> GetGroundTruthImagesAsync(Guid datasetId)
+    {
+        List<GroundTruthImage> images = [];
+        try
+        {
+            var results = await httpClient!.GetFromJsonAsync<string[]>($"{FILE_PATH_PREFIX}/datasets/{datasetId}/");
+            if (results is null || results.Length == 0) return [];
+
+            results = results.Where(x => x.EndsWith(".json")).ToArray();
+
+            // todo: implement paging
+            foreach (var path in results)
+            {
+                var img = await httpClient!.GetFromJsonAsync<GroundTruthImage>($"{config.FileSystemApi}/storage/files/object?path={path}");
+                if (img is not null)
+                {
+                    images.Add(img);
+                }
+            }
+
+            return images;
+        }
+        catch (HttpRequestException ex)
+        {
+            if (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return [];
+            }
+            logger.LogError(ex, "error: failed to get experiment run logs");
+        }
+
+
+        return images;
+    }
+
+    public async Task<ApiResponse> SaveGroundTruthImageAsync(Guid datasetId, GroundTruthImage groundTruth, byte[] imageBytes)
+    {
+        var json = JsonSerializer.Serialize(groundTruth);
+        var response = await httpClient.PutAsync($"{PATH_PREFIX}/datasets/{datasetId}/{groundTruth.Id}.json", new StringContent(json));
+        if (!response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            logger.LogError("error: {content}, http status: {status}", content, response.StatusCode);
+            return new ApiResponse(false, $"error: {content}, http status: {response.StatusCode}");
+        }
+
+        var imageResponse = await httpClient.PutAsync($"{PATH_PREFIX}/datasets/{datasetId}/{groundTruth.Id}.jpg", new ByteArrayContent(imageBytes));
+        if (!imageResponse.IsSuccessStatusCode)
+        {
+            var content = await imageResponse.Content.ReadAsStringAsync();
+            logger.LogError("error: {content}, http status: {status}", content, imageResponse.StatusCode);
+            return new ApiResponse(false, $"error: {content}, http status: {response.StatusCode}");
+        }
+
+        return new ApiResponse(true, default);
+    }
+
+    public async Task<ApiResponse<byte[]>> GetGroundTruthImageAsync(Guid datasetId, GroundTruthImage groundTruth)
+    {
+        try
+        {
+            var results = await httpClient!.GetByteArrayAsync($"{PATH_PREFIX}/datasets/{datasetId}/{groundTruth.Id}.jpg");
+            if (results is not null)
+            {
+                return new ApiResponse<byte[]>(true, default, results);
+            }
+        }
+        catch (HttpRequestException e)
+        {
+            if (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ApiResponse<byte[]>(true, default, []);
+            }
+            return new ApiResponse<byte[]>(false, e.ToString(), []);
+        }
+
+        return new ApiResponse<byte[]>(false, "unable to read response", []);
+    }
+
     public async Task<List<ExperimentLog>> GetExperimentRunLogsAsync(Guid projectId, Guid experimentId, Guid runId)
     {
         List<ExperimentLog> logs = [];

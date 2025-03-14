@@ -18,17 +18,11 @@
                 </RadzenRow>
             </HeaderTemplate>
             <Columns>
-                <RadzenDataGridColumn TItem="DataSetModel" Title="" Width="50px">
-                    <Template Context="entry">
-                        @{
-                            var path = $"projects/{entry.Id}/dataset";
-                            <RadzenLink Text=@entry.DisplayName Path=@path />
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="DataSetModel" Title="Name" Property="DisplayName" Width="50px"/>
                 <RadzenDataGridColumn TItem="DataSetModel" Title="Options" Width="20px">
                     <Template Context="entry">
-                        <RadzenButton Text="Edit" Click="()=>Edit(entry)" />
+                        <RadzenButton Text="Open" Click="()=>OpenDataset(entry)" />
+                        <RadzenButton Text="Edit" Click="()=>Edit(entry)" />                      
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>

@@ -31,8 +31,14 @@ public partial class ExperimentRunDashboard
     [Inject]
     private UserSession? UserSession { get; set; }
 
+    private ExperimentModel? experimentModel;
+
     protected override async Task OnInitializedAsync()
     {
+        if (UserSession!.Items.TryGetValue(nameof(ExperimentModel), out var experimentModelOut))
+        {
+            experimentModel = (ExperimentModel)experimentModelOut;
+        }
         await RefreshAsync();
     }
 

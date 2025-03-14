@@ -1,0 +1,67 @@
+﻿@page "/datasets/{DatasetId:guid}/images/ground-truth/{Id:guid}"
+
+<RadzenStack Style="width:100%">
+    @if (ErrorMessage is not null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+            @ErrorMessage
+        </RadzenAlert>
+    }
+    @if (IsSaving)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter">
+            Saving dataset...
+        </RadzenAlert>
+    }
+    @if (Model is not null)
+    {
+        <RadzenRow AlignItems="AlignItems.Center">
+            <RadzenColumn Size="12" SizeMD="4">
+                <RadzenLabel Text="Name" title="Name" />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="8">
+                <RadzenTextBox Disabled=@IsSaving Style="width: 100%;" Name="Name" @bind-Value=@Model.DisplayName />
+            </RadzenColumn>
+        </RadzenRow>
+        @if (Model.Fields is not null)
+        {
+            foreach (var field in Model.Fields)
+            {
+                <RadzenRow AlignItems="AlignItems.Center">
+                    <RadzenColumn Size="12" SizeMD="4">
+                        <span>@field.Name</span>
+                    </RadzenColumn>
+                    <RadzenColumn Size="12" SizeMD="6">
+                        <RadzenTextBox Style="width: 100%;" @bind-Value=@field.Value />
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+        }
+        <RadzenRow AlignItems="AlignItems.Center">
+            <RadzenColumn Size="12" SizeMD="8">
+                @if (!string.IsNullOrEmpty(Base64Image))
+                {
+                    <div style="width:100%;height:500px; overflow:scroll;text-align:right;">
+                        <RadzenImage Path=@Base64Image />
+                    </div>                    
+                }
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="4">
+                <RadzenStack Orientation="Orientation.Vertical">
+                    <RadzenButton Disabled=@(pageCounter == 0) ButtonStyle=ButtonStyle.Light Click=@Previous Size="ButtonSize.Small" Text="Previous" />
+                    <RadzenButton Disabled=@(pageSize == 0 || pageCounter == pageSize - 1) ButtonStyle=ButtonStyle.Light Click=@Next Size="ButtonSize.Small" Text="Next" />
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Upload image</RadzenText>
+                        <InputFile Style="margin-top:5px;" OnChange="@InputFileChange" />
+                    </RadzenCard>
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Gap="2rem" Class="rz-p-0 rz-p-lg-4">
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+                <RadzenButton Disabled=@IsSaving ButtonStyle="ButtonStyle.Primary" Click=@(async()=>await SaveAsync()) Size="ButtonSize.Large" Icon="save" Text="Save" />
+                <RadzenButton Disabled=@IsSaving ButtonStyle=ButtonStyle.Light Click=@Cancel Size="ButtonSize.Large" Text="Cancel" />
+            </RadzenStack>
+        </RadzenRow>
+    }
+</RadzenStack>
