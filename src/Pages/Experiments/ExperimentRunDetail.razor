@@ -28,60 +28,78 @@
                 <RadzenRow>
                     <RadzenColumn>
                         <table>
-                            <tr>
-                                <td>Run Id</td>
-                                <td>@model.Id.ToString()</td>
-                            </tr>
-                            <tr>
-                                <td>Start</td>
-                                <td>@model.Start.ToString()</td>
-                            </tr>
-                            <tr>
-                                <td>End</td>
-                                <td>@model.End.ToString()</td>
-                            </tr>
-                            <tr>
-                                <td>Model Id</td>
-                                <td>@model.ModelId</td>
-                            </tr>
-                            <tr>
-                                <td>System Prompt</td>
-                                <td>@model.SystemPrompt</td>
-                            </tr>
-                            <tr>
-                                <td>User Prompt</td>
-                                <td>@model.UserPrompt</td>
-                            </tr>
-                            <tr>
-                                <td>Iterations</td>
-                                <td>@model.Iterations.ToString()</td>
-                            </tr>
-                            <tr>
-                                <td>Max Tokens</td>
-                                <td>@model.MaxTokens.ToString()</td>
-                            </tr>
-                            <tr>
-                                <td>Temperature</td>
-                                <td>@model.Temperature.ToString()</td>
-                            </tr>
-                            <tr>
-                                <td>TopP</td>
-                                <td>@model.TopP.ToString()</td>
-                            </tr>
+                            <thead>
+                                <tr>
+                                    <td style="width:120px"><h3>Key</h3></td>
+                                    <td style="width:600px"><h3>Value</h3></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Run Id</td>
+                                    <td>@model.Id.ToString()</td>
+                                </tr>
+                                <tr>
+                                    <td>Start</td>
+                                    <td>@model.Start.ToString()</td>
+                                </tr>
+                                <tr>
+                                    <td>End</td>
+                                    <td>@model.End.ToString()</td>
+                                </tr>
+                                <tr>
+                                    <td>Model Id</td>
+                                    <td>@model.ModelId</td>
+                                </tr>
+                                <tr>
+                                    <td>System Prompt</td>
+                                    <td>@model.SystemPrompt</td>
+                                </tr>
+                                <tr>
+                                    <td>User Prompt</td>
+                                    <td>@model.UserPrompt</td>
+                                </tr>
+                                <tr>
+                                    <td>Iterations</td>
+                                    <td>@model.Iterations.ToString()</td>
+                                </tr>
+                                <tr>
+                                    <td>Max Tokens</td>
+                                    <td>@model.MaxTokens.ToString()</td>
+                                </tr>
+                                <tr>
+                                    <td>Temperature</td>
+                                    <td>@model.Temperature.ToString()</td>
+                                </tr>
+                                <tr>
+                                    <td>TopP</td>
+                                    <td>@model.TopP.ToString()</td>
+                                </tr>
+                            </tbody>
+
                         </table>
                     </RadzenColumn>
                     <RadzenColumn>
                         @if (Logs is not null)
                         {
                             <table>
-                                @foreach (var log in Logs)
-                                {
+                                <thead>
                                     <tr>
-                                        <td>@log.Created!.Value.ToString()</td>
-                                        <td>@log.Level</td>
-                                        <td>@log.Message</td>
+                                        <td style="width:120px"><h3>Created</h3></td>
+                                        <td style="width:120px"><h3>Level</h3></td>
+                                        <td style="width:400px"><h3>Message</h3></td>
                                     </tr>
-                                }
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in Logs)
+                                    {
+                                        <tr>
+                                            <td>@log.Created!.Value.ToString()</td>
+                                            <td>@log.Level</td>
+                                            <td>@log.Message</td>
+                                        </tr>
+                                    }
+                                </tbody>
                             </table>
                         }
                     </RadzenColumn>

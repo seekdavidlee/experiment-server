@@ -64,6 +64,16 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ExperimentRunModel" Title="Model" Width="20px">
+                    <Template Context="entry">
+                        @entry.Value!.ModelId
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ExperimentRunModel" Title="Iterations" Width="20px">
+                    <Template Context="entry">
+                        @entry.Value!.Iterations
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="ExperimentRunModel" Title="" Width="50px">
                     <Template Context="entry">
                         <RadzenButton Click=@(args => View(entry.Value!)) Text="View" ButtonStyle="ButtonStyle.Primary" />
