@@ -112,7 +112,7 @@ public partial class RunExperimentDialog
             return;
         }
 
-        if (OriginalPrompts is not null && OriginalPrompts.System != model.SystemPrompt && OriginalPrompts.User != model.UserPrompt)
+        if (OriginalPrompts is not null && (OriginalPrompts.System != model.SystemPrompt || OriginalPrompts.User != model.UserPrompt))
         {
             await Client.SavePromptsAsync(ProjectId, ExperimentId, new Prompts(model.SystemPrompt, model.UserPrompt));
         }
