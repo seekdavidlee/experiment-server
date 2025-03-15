@@ -408,7 +408,7 @@ public class FileSystemApi
                 }
             }
 
-            return runs;
+            return [.. runs.OrderByDescending(x => x.Start)];
         }
         catch (HttpRequestException ex)
         {
