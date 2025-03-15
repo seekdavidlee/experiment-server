@@ -1,4 +1,5 @@
 ﻿@page "/projects/{ProjectId:guid}/experiments/{ExperimentId:guid}/comparisons"
+@using ExperimentServer.Shared
 <RadzenStack>
     <RadzenRow>
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
@@ -6,34 +7,7 @@
         </RadzenStack>
     </RadzenRow>
     <RadzenRow>
-        @if (Inputs is not null)
-        {
-            <div>
-                <h3>Inputs</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <td style="width:120px"><h3>Name</h3></td>
-                            @foreach (var colName in Inputs.ColumnNames!)
-                            {
-                                <td style="width:600px"><h3>@colName</h3> </td>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var row in Inputs.Rows!)
-                        {
-                            <tr>
-                                <td><b>@row.Name</b></td>
-                                @foreach (var cell in row.Cells!)
-                                {
-                                    <td>@cell.Value</td>
-                                }
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
+        <TableView Title="Inputs" TableModel="@Inputs" />
+        <TableView Title="Fields Accuracy" TableModel="@FieldsAccuracy" />
     </RadzenRow>
 </RadzenStack>
