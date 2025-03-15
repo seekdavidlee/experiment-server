@@ -74,7 +74,7 @@ public partial class ExperimentRunDetail
         NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs");
     }
 
-    public async Task OpenImageAsync(ExperimentRunResult result, ExperimentMetric metric)
+    public void OpenImageAsync(ExperimentRunResult result, ExperimentMetric metric)
     {
         UserSession!.Items[nameof(ExperimentRunResult)] = result;
         UserSession!.Items[nameof(ExperimentMetric)] = metric;
