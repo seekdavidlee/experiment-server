@@ -55,6 +55,19 @@ public partial class EditGroundTruthImage
     private async Task SaveAsync()
     {
         ErrorMessage = null;
+
+        if (Model!.Tags is not null)
+        {
+            foreach (var tag in Model.Tags)
+            {
+                if (string.IsNullOrEmpty(tag.Name) || string.IsNullOrEmpty(tag.Value))
+                {
+                    ErrorMessage = "please enter a valid tag name and value";
+                    return;
+                }
+            }
+        }
+
         if (base64Images.Length == 0)
         {
             ErrorMessage = "please select an image";
@@ -172,5 +185,13 @@ public partial class EditGroundTruthImage
         }
 
         StateHasChanged();
+    }
+
+    private void AddTag()
+    {
+        var tags = Model!.Tags is not null ? [.. Model.Tags] : new List<GroundTruthTag>();
+
+        tags.Add(new GroundTruthTag());
+        Model.Tags = [.. tags];
     }
 }

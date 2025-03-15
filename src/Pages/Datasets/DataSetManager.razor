@@ -41,23 +41,31 @@
                         </Template>
                     </RadzenDataGridColumn>
                 }
-                <RadzenDataGridColumn TItem="GroundTruthImage" Title="Tags" Width="20px">
+                <RadzenDataGridColumn TItem="GroundTruthImage" Title="Tags" Width="30px">
                     <Template Context="entry">
                         @if (entry.Tags is not null)
                         {
                             <table>
-                                @foreach (var tag in entry.Tags)
-                                {
+                                <thead>
                                     <tr>
-                                        <td>@tag.Name</td>
-                                        <td>@tag.Value</td>
+                                        <td style="width:60px"><b>Name</b></td>
+                                        <td style="width:100px"><b>Value</b></td>
                                     </tr>
-                                }
+                                </thead>
+                                <tbody>
+                                    @foreach (var tag in entry.Tags)
+                                    {
+                                        <tr>
+                                            <td>@tag.Name</td>
+                                            <td>@tag.Value</td>
+                                        </tr>
+                                    }
+                                </tbody>
                             </table>
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="GroundTruthImage" Title="" Width="50px">
+                <RadzenDataGridColumn TItem="GroundTruthImage" Title="" Width="20px">
                     <Template Context="entry">
                         <RadzenButton Click=@(args => Edit(entry)) Text="View" ButtonStyle="ButtonStyle.Primary" />
                     </Template>
