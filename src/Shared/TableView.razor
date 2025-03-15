@@ -9,7 +9,7 @@
                     foreach (var colName in TableModel.ColumnNames)
                     {
                         <td style="width:600px">
-                            <h3>
+                            <h4>
                                 @if (colName.HyperLink is not null)
                                 {
                                     <a href="@colName.HyperLink">@colName.Name</a>
@@ -18,7 +18,7 @@
                                 {
                                     @colName.Name
                                 }
-                            </h3>
+                            </h4>
                         </td>
                     }
                 }
