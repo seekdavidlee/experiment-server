@@ -5,15 +5,32 @@ namespace ExperimentServer.Services;
 
 public class Evaluation
 {
+    private const string JSON_PATTERN = "```json";
     public List<AssertionModel> GetAssertions(GroundTruthImage groundTruthImage, string text)
     {
         List<AssertionModel> assertions = [];
         JsonDocument? doc = null;
         try
         {
-            doc = JsonSerializer.Deserialize<JsonDocument>(text!);
+            string cleanup = text;
+            // special cleanup
+            int index = cleanup.IndexOf(JSON_PATTERN);
+            if (index >= 0)
+            {
+                cleanup = cleanup.Substring(index + JSON_PATTERN.Length);
+                int lastIndex = cleanup.LastIndexOf('}');
+                if (lastIndex > 0)
+                {
+                    cleanup = cleanup[..(lastIndex + 1)];
+                }
+            }
+            doc = JsonSerializer.Deserialize<JsonDocument>(cleanup!);
         }
         catch (JsonException)
+        {
+
+        }
+        catch (ArgumentOutOfRangeException)
         {
 
         }
