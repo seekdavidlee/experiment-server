@@ -98,4 +98,19 @@ public partial class ExperimentRunDashboard
             }
         }
     }
+
+    private void PerformComparisons()
+    {
+        List<ExperimentRun> runs = [];
+        foreach (var item in model.Items)
+        {
+            if (item.IsSelected)
+            {
+                runs.Add(item.Value!);
+            }
+        }
+
+        UserSession!.Items[nameof(ExperimentsComparison)] = runs;
+        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/comparisons");
+    }
 }
