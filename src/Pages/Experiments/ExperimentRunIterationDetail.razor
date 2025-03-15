@@ -7,6 +7,12 @@
                 var path = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{RunId}";
                 <RadzenLink Path=@path Text="Back" />
             }
+
+            @if (groundTruth is not null)
+            {
+                <h3>@groundTruth.DisplayName</h3>
+            }
+
         </RadzenColumn>
     </RadzenRow>
     <RadzenRow AlignItems="AlignItems.Center">

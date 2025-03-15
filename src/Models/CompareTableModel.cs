@@ -2,7 +2,7 @@
 
 public class CompareTableModel
 {
-    public string[]? ColumnNames { get; set; }
+    public CompareTableColumn[]? ColumnNames { get; set; }
     public List<CompareTableRow>? Rows { get; set; }
 }
 
@@ -15,4 +15,11 @@ public class CompareTableRow
 public class CompareTableCell
 {
     public string? Value { get; set; }
+}
+
+public class CompareTableColumn
+{
+    public string? Name { get; set; }
+
+    public string? HyperLink { get; set; }
 }

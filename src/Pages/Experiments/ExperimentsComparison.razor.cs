@@ -49,6 +49,7 @@ public partial class ExperimentsComparison
                 nameof(ExperimentRun.UserPrompt),
                 nameof(ExperimentRun.Temperature),
                 nameof(ExperimentRun.TopP),
+                nameof(ExperimentRun.Iterations),
                 ];
 
         List<string> colNames = [];
@@ -68,7 +69,7 @@ public partial class ExperimentsComparison
             }
         }
 
-        Inputs = new CompareTableModel { ColumnNames = [.. colNames], Rows = [.. rows.Values] };
+        Inputs = new CompareTableModel { ColumnNames = [.. colNames.Select(x => new CompareTableColumn { Name = x })], Rows = [.. rows.Values] };
     }
 
     private async Task InitFieldsAccuracyAsync(List<ExperimentRun> runs)
@@ -145,7 +146,15 @@ public partial class ExperimentsComparison
             }
         }
 
-        FieldsAccuracy = new CompareTableModel { ColumnNames = [.. colNames], Rows = [.. rows.Values] };
+        FieldsAccuracy = new CompareTableModel
+        {
+            ColumnNames = [.. colNames.Select(x => new CompareTableColumn
+            {
+                Name = x,
+                HyperLink = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{x}"
+            })],
+            Rows = [.. rows.Values]
+        };
     }
 
     private void Back()
