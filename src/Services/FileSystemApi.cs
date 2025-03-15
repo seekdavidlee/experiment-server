@@ -283,6 +283,28 @@ public class FileSystemApi
         return new ApiResponse<byte[]>(false, "unable to read response", []);
     }
 
+    public async Task<ApiResponse<T?>> GetJsonAsync<T>(string path) where T : class, new()
+    {
+        try
+        {
+            var results = await httpClient!.GetFromJsonAsync<T>($"{config.FileSystemApi}/storage/files/object?path={path}");
+            if (results is not null)
+            {
+                return new ApiResponse<T?>(true, default, results);
+            }
+        }
+        catch (HttpRequestException e)
+        {
+            if (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ApiResponse<T?>(true, default, new T());
+            }
+            return new ApiResponse<T?>(false, e.ToString(), default);
+        }
+
+        return new ApiResponse<T?>(false, "unable to read response", default);
+    }
+
     public async Task<List<ExperimentLog>> GetExperimentRunLogsAsync(Guid projectId, Guid experimentId, Guid runId)
     {
         List<ExperimentLog> logs = [];

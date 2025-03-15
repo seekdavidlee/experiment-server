@@ -27,6 +27,9 @@ public partial class ExperimentRunIterationDetail
     private ExperimentRunResult? experimentRunResult;
     private ExperimentMetric? experimentMetric;
     private string? Base64Image { get; set; }
+    private List<AssertionModel>? assertions;
+    private readonly Evaluation eval = new();
+    private GroundTruthImage? groundTruth;
 
     protected override async Task OnInitializedAsync()
     {
@@ -42,6 +45,13 @@ public partial class ExperimentRunIterationDetail
                 if (getImageResponse.Success)
                 {
                     Base64Image = $"data:image/jpg;base64,{Convert.ToBase64String(getImageResponse.Result)}";
+                }
+
+                var groundTruthResponse = await Client.GetJsonAsync<GroundTruthImage>(imagePathObj.Replace(".jpg", ".json"));
+                if (groundTruthResponse.Success)
+                {
+                    groundTruth = groundTruthResponse.Result!;
+                    assertions = eval.GetAssertions(groundTruth, experimentRunResult.Text!);
                 }
             }
         }

@@ -19,10 +19,66 @@
             }
         </RadzenColumn>
         <RadzenColumn Size="12" SizeMD="4">
-            @if (experimentRunResult is not null)
-            {
-                <span>@experimentRunResult.Text</span>
-            }
+            <RadzenStack>
+                @if (experimentRunResult is not null)
+                {
+                    <div>
+                        <h3>Raw Text:</h3>
+                        <span>@experimentRunResult.Text</span>
+                    </div>
+                }
+
+                @if (assertions is not null)
+                {
+                    <div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td style="width:120px"><h3>Field</h3> </td>
+                                    <td style="width:180px"><h3>Expected</h3></td>
+                                    <td style="width:180px"><h3>Actual</h3></td>
+                                    <td style="width:300px"><h3>Message</h3></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var assertion in assertions)
+                                {
+                                    var color = assertion.Success ? "green" : "red";
+                                    <tr>
+                                        <td style="color:@color">@assertion.Field</td>
+                                        <td>@assertion.Expected</td>
+                                        <td>@assertion.Actual</td>
+                                        <td>@assertion.Message</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                @if (groundTruth is not null && groundTruth.Tags is not null)
+                {
+                    <div>
+                        <h3>Ground Truth Tags:</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td style="width:120px"><h3>Key</h3> </td>
+                                    <td style="width:120px"><h3>Value</h3></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tag in groundTruth.Tags)
+                                {
+                                    <tr>
+                                        <td>@tag.Name</td>
+                                        <td>@tag.Value</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </RadzenStack>
         </RadzenColumn>
     </RadzenRow>
 </RadzenStack>
