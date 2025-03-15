@@ -9,5 +9,9 @@
     <RadzenRow>
         <TableView Title="Inputs" TableModel="@Inputs" />
         <TableView Title="Fields Accuracy" TableModel="@FieldsAccuracy" />
+        @foreach (var failure in PerRunFailureComparisions)
+        {
+            <TableView Title=@failure.Title TableModel="@failure" />
+        }
     </RadzenRow>
 </RadzenStack>

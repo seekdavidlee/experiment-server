@@ -1,6 +1,6 @@
 ﻿<div>
     <h3>@Title</h3>
-    <table>
+    <table style="border: 3px solid black; border-collapse: collapse;">
         <thead>
             <tr>
                 <td style="width:120px"><h3>Name</h3></td>
@@ -8,7 +8,7 @@
                 {
                     foreach (var colName in TableModel.ColumnNames)
                     {
-                        <td style="width:600px">
+                        <td style="width:600px; border: 1px solid black;">
                             <h4>
                                 @if (colName.HyperLink is not null)
                                 {
@@ -30,10 +30,25 @@
                 foreach (var row in TableModel.Rows!)
                 {
                     <tr>
-                        <td><b>@row.Name</b></td>
+                        <td style="border: 1px solid black;"><b>@row.Name</b></td>
                         @foreach (var cell in row.Cells!)
                         {
-                            <td>@cell.Value</td>
+                            <td style="border: 1px solid black;">
+                                @if (cell.Values is not null)
+                                {
+                                    foreach (var value in cell.Values)
+                                    {
+                                        if (!string.IsNullOrEmpty(value))
+                                        {
+                                            <span>@value</span>  <hr />
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    @cell.Value
+                                }
+                            </td>
                         }
                     </tr>
                 }

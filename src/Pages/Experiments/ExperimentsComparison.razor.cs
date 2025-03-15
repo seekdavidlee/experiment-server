@@ -28,6 +28,7 @@ public partial class ExperimentsComparison
 
     private CompareTableModel? Inputs;
     private CompareTableModel? FieldsAccuracy;
+    private readonly List<CompareTableModel> PerRunFailureComparisions = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -36,7 +37,7 @@ public partial class ExperimentsComparison
             var runs = (List<ExperimentRun>)experimentRunsObj;
 
             InitInputs(runs);
-            await InitFieldsAccuracyAsync(runs);
+            await InitAsync(runs);
         }
     }
 
@@ -72,14 +73,25 @@ public partial class ExperimentsComparison
         Inputs = new CompareTableModel { ColumnNames = [.. colNames.Select(x => new CompareTableColumn { Name = x })], Rows = [.. rows.Values] };
     }
 
-    private async Task InitFieldsAccuracyAsync(List<ExperimentRun> runs)
+    private async Task InitAsync(List<ExperimentRun> runs)
     {
-        List<string> colNames = [];
+        List<string> fieldAccuracyColNames = [];
         Evaluation eval = new();
-        Dictionary<string, CompareTableRow> rows = [];
+        Dictionary<string, CompareTableRow> fieldAccuracyRows = [];
         foreach (var experimentRun in runs)
         {
-            colNames.Add(experimentRun.Id.ToString());
+            CompareTableModel perRunFailureComparision = new()
+            {
+                Title = $"{experimentRun.Id} failures",
+                Rows = [],
+                ColumnNames = [
+                    new CompareTableColumn { Name = "Expected" },
+                    new CompareTableColumn { Name = "Actual" },
+                    new CompareTableColumn { Name = "Message" }
+                ]
+            };
+
+            fieldAccuracyColNames.Add(experimentRun.Id.ToString());
             Dictionary<string, FieldAccuracy> fields = [];
 
             var results = await Client!.GetExperimentRunResultsAsync(ProjectId, ExperimentId, experimentRun.Id);
@@ -131,29 +143,61 @@ public partial class ExperimentsComparison
                     {
                         fieldAcc.Correct++;
                     }
+                    else
+                    {
+                        string key = $"{groundTruthResponse.Result!.DisplayName}.{assertion.Field}.{assertion.Expected}";
+                        var existingPerFieldFailureComparisionRow = perRunFailureComparision.Rows!.SingleOrDefault(x => x.Name == key);
+                        if (existingPerFieldFailureComparisionRow is null)
+                        {
+                            var newPerFieldFailureComparisionRow = new CompareTableRow { Name = key, Cells = [] };
+                            newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = assertion.Expected });
+                            newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Actual ?? ""] });
+                            newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Message ?? ""] });
+                            perRunFailureComparision.Rows!.Add(newPerFieldFailureComparisionRow);
+                        }
+                        else
+                        {
+                            var actualCell = existingPerFieldFailureComparisionRow.Cells![1];
+                            if (assertion.Actual is not null && !actualCell.Values!.Contains(assertion.Actual))
+                            {
+                                actualCell.Values = [.. actualCell.Values!, assertion.Actual];
+                            }
+
+                            var messageCell = existingPerFieldFailureComparisionRow.Cells![2];
+                            if (assertion.Message is not null && !messageCell.Values!.Contains(assertion.Message))
+                            {
+                                messageCell.Values = [.. messageCell.Values!, assertion.Message];
+                            }
+                        }
+                    }
                 }
             }
 
             foreach (var field in fields.Values)
             {
-                if (!rows.TryGetValue(field.Name!, out var row))
+                if (!fieldAccuracyRows.TryGetValue(field.Name!, out var fieldAccuracyRow))
                 {
-                    row = new CompareTableRow { Name = field.Name, Cells = [] };
-                    rows.Add(field.Name!, row);
+                    fieldAccuracyRow = new CompareTableRow { Name = field.Name, Cells = [] };
+                    fieldAccuracyRows.Add(field.Name!, fieldAccuracyRow);
                 }
                 decimal accuracy = field.Total == 0 ? 0 : (decimal)field.Correct / field.Total;
-                row.Cells!.Add(new CompareTableCell { Value = String.Format("{0:P3}", accuracy) });
+                fieldAccuracyRow.Cells!.Add(new CompareTableCell { Value = String.Format("{0:P3}", accuracy) });
+            }
+
+            if (perRunFailureComparision.Rows!.Count != 0)
+            {
+                PerRunFailureComparisions.Add(perRunFailureComparision);
             }
         }
 
         FieldsAccuracy = new CompareTableModel
         {
-            ColumnNames = [.. colNames.Select(x => new CompareTableColumn
+            ColumnNames = [.. fieldAccuracyColNames.Select(x => new CompareTableColumn
             {
                 Name = x,
                 HyperLink = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{x}"
             })],
-            Rows = [.. rows.Values]
+            Rows = [.. fieldAccuracyRows.Values]
         };
     }
 
