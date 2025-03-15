@@ -65,7 +65,7 @@
             <RadzenLabel Text="Dataset" />
         </RadzenColumn>
         <RadzenColumn Size="12" SizeMD="8">
-            <RadzenDropDown TValue="Guid" @bind-Value="selectedDataSetId" TextProperty="DisplayName" ValueProperty="Id" Data=@dataSets />
+            <RadzenDropDown TValue="Guid" @bind-Value="SelectedDataSetId" TextProperty="DisplayName" ValueProperty="Id" Data=@DataSets />
         </RadzenColumn>
     </RadzenRow>
     <RadzenRow AlignItems="AlignItems.Center">
@@ -73,7 +73,7 @@
             <RadzenLabel Text="Model Id" />
         </RadzenColumn>
         <RadzenColumn Size="12" SizeMD="8">
-            <RadzenDropDown @bind-Value="model.ModelId" Data=@modelIds />
+            <RadzenDropDown @bind-Value="model.ModelId" Data=@ModelIds />
         </RadzenColumn>
     </RadzenRow>
     <RadzenRow Gap="2rem" Class="rz-p-0 rz-p-lg-4">

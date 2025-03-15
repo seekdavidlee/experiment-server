@@ -87,44 +87,51 @@ public class FileSystemApi
         return new ApiResponse(true, default);
     }
 
-    public async Task<Prompts> GetPromptsAsync()
+
+    private string GetPromptPath(Guid projectId, Guid experimentId)
     {
-        var response = await httpClient!.GetAsync($"{PATH_PREFIX}/prompts/{Constants.ImageInferenceTypes.Receipts}/{Constants.PromptsFilename}");
+        return $"{PATH_PREFIX}/meta/projects/{projectId}/experiments/{experimentId}/prompt.json";
+    }
+
+    public async Task<ApiResponse<Prompts?>> GetPromptsAsync(Guid projectId, Guid experimentId)
+    {
+
+        var response = await httpClient!.GetAsync(GetPromptPath(projectId, experimentId));
         if (response.IsSuccessStatusCode)
         {
             var p = await response.Content.ReadFromJsonAsync<Prompts>();
             if (p is null)
             {
                 logger.LogError("error: failed to deserialize prompts");
-                return new Prompts("", "");
+                return new ApiResponse<Prompts?>(false, "failed to deserialize prompts", new Prompts("You are an AI assistant", "Tell me about the picture."));
             }
 
-            return p;
+            return new ApiResponse<Prompts?>(true, default, p);
         }
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new Prompts("", "");
+            return new ApiResponse<Prompts?>(true, default, new Prompts("You are an AI assistant", "Tell me about the picture."));
         }
 
         var content = await response.Content.ReadAsStringAsync();
         logger.LogError("error: {content}, http status: {status}", content, response.StatusCode);
-        return new Prompts("", "");
+        return new ApiResponse<Prompts?>(false, $"error: {content}, http status: {response.StatusCode}", default);
     }
 
-    public async Task<ResponseResult> SavePromptsAsync(Prompts prompts)
+    public async Task<ApiResponse> SavePromptsAsync(Guid projectId, Guid experimentId, Prompts prompts)
     {
-        var response = await httpClient.PutAsync($"{PATH_PREFIX}/prompts/{Constants.ImageInferenceTypes.Receipts}/{Constants.PromptsFilename}",
+        var response = await httpClient.PutAsync(GetPromptPath(projectId, experimentId),
               new StringContent(JsonSerializer.Serialize(prompts)));
 
         if (response.IsSuccessStatusCode)
         {
-            return new ResponseResult(true, null);
+            return new ApiResponse(true, default);
         }
 
         var content = await response.Content.ReadAsStringAsync();
         logger.LogError("error: {content}, http status: {status}", content, response.StatusCode);
-        return new ResponseResult(false, content);
+        return new ApiResponse(false, content);
     }
 
     public async Task<List<ExperimentModel>> GetExperimentsAsync(Guid projectId)

@@ -11,8 +11,6 @@ public partial class RunExperimentDialog
     {
         Iterations = 1,
         MaxTokens = 2048,
-        SystemPrompt = "You are an AI assistant",
-        UserPrompt = "Tell me about the picture"
     };
 
     private string? ErrorMessage;
@@ -34,19 +32,34 @@ public partial class RunExperimentDialog
     [Parameter]
     public Guid ExperimentId { get; set; }
 
-    private List<DataSetModel>? dataSets { get; set; }
+    private List<DataSetModel>? DataSets { get; set; }
 
-    private Guid selectedDataSetId { get; set; }
+    private Guid SelectedDataSetId { get; set; }
 
-    private List<string>? modelIds { get; set; }
+    private List<string>? ModelIds { get; set; }
+
+    private Prompts? OriginalPrompts;
 
     protected override async Task OnInitializedAsync()
     {
-        dataSets = await Client!.GetDataSetsAsync();
+        DataSets = await Client!.GetDataSetsAsync();
         var response = await InferenceClient!.GetModelsAsync();
         if (response.Success)
         {
-            modelIds = [.. response.Result];
+            ModelIds = [.. response.Result];
+
+            var promptResponse = await Client.GetPromptsAsync(ProjectId, ExperimentId);
+            if (promptResponse.Success)
+            {
+                model.SystemPrompt = promptResponse.Result!.System;
+                model.UserPrompt = promptResponse.Result.User;
+
+                OriginalPrompts = new Prompts(model.SystemPrompt, model.UserPrompt);
+            }
+            else
+            {
+                ErrorMessage = promptResponse.ErrorMessage;
+            }
         }
         else
         {
@@ -56,7 +69,6 @@ public partial class RunExperimentDialog
 
     private async Task SaveAsync()
     {
-
         if (string.IsNullOrEmpty(model.SystemPrompt))
         {
             ErrorMessage = "please enter a valid system prompt";
@@ -75,7 +87,7 @@ public partial class RunExperimentDialog
             return;
         }
 
-        if (selectedDataSetId == Guid.Empty)
+        if (SelectedDataSetId == Guid.Empty)
         {
             ErrorMessage = "please select a data set";
             return;
@@ -87,7 +99,7 @@ public partial class RunExperimentDialog
 
         model.ExperimentId = ExperimentId;
         model.ProjectId = ProjectId;
-        model.DataSetFileSystemApiPath = Client!.GetDataSetPath(selectedDataSetId);
+        model.DataSetFileSystemApiPath = Client!.GetDataSetPath(SelectedDataSetId);
         model.OutputFileSystemApiPath = Client!.GetExperimentRunsPath(ProjectId, ExperimentId, false);
 
         var response = await InferenceClient!.RunExperimentAsync(model);
@@ -99,6 +111,12 @@ public partial class RunExperimentDialog
             StateHasChanged();
             return;
         }
+
+        if (OriginalPrompts is not null && OriginalPrompts.System != model.SystemPrompt && OriginalPrompts.User != model.UserPrompt)
+        {
+            await Client.SavePromptsAsync(ProjectId, ExperimentId, new Prompts(model.SystemPrompt, model.UserPrompt));
+        }
+
         DialogService!.Close(true);
     }
 
