@@ -2,6 +2,7 @@
 using ExperimentServer.Services;
 using Microsoft.AspNetCore.Components;
 using Radzen;
+using System.Text.Json;
 
 namespace ExperimentServer.Shared;
 
@@ -26,11 +27,18 @@ public partial class EditExperimentDialog
 
     private bool IsSaving { get; set; }
 
+    private ExperimentModel? WorkingModel { get; set; }
+
+    protected override void OnInitialized()
+    {
+        WorkingModel = JsonSerializer.Deserialize<ExperimentModel>(JsonSerializer.Serialize(Model));
+    }
+
     private async Task SaveAsync()
     {
-        if (Model is null || Models is null) return;
+        if (WorkingModel is null || Models is null) return;
 
-        if (string.IsNullOrEmpty(Model.Name))
+        if (string.IsNullOrEmpty(WorkingModel.Name))
         {
             ErrorMessage = "please enter a valid name";
             return;
@@ -39,14 +47,14 @@ public partial class EditExperimentDialog
         IsSaving = true;
         StateHasChanged();
 
-        if (Model.Id == Guid.Empty)
+        if (WorkingModel.Id == Guid.Empty)
         {
-            Model.Id = Guid.NewGuid();
-            Model.Created = DateTime.UtcNow;
+            WorkingModel.Id = Guid.NewGuid();
+            WorkingModel.Created = DateTime.UtcNow;
         }
 
-        Models = Models.Where(x => x.Id != Model.Id).ToList();
-        Models.Add(Model);
+        Models = Models.Where(x => x.Id != WorkingModel.Id).ToList();
+        Models.Add(WorkingModel);
 
         var response = await Client!.SaveExperimentsAsync(ProjectId, Models);
         IsSaving = false;

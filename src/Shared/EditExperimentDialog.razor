@@ -11,14 +11,14 @@
             Saving experiment...
         </RadzenAlert>
     }
-    @if (Model is not null)
+    @if (WorkingModel is not null)
     {
         <RadzenRow AlignItems="AlignItems.Center">
             <RadzenColumn Size="12" SizeMD="4">
                 <RadzenLabel Text="Name" title="Name" />
             </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="8">
-                <RadzenTextBox Disabled=@IsSaving Style="width: 100%;" Name="Name" @bind-Value=@Model.Name />
+                <RadzenTextBox Disabled=@IsSaving Style="width: 100%;" Name="Name" @bind-Value=@WorkingModel.Name />
             </RadzenColumn>
         </RadzenRow>
         <RadzenRow Gap="2rem" Class="rz-p-0 rz-p-lg-4">
