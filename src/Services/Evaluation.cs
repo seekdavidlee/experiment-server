@@ -37,6 +37,12 @@ public class Evaluation
 
         foreach (var field in groundTruthImage.Fields!)
         {
+            if (field.IsSubjective)
+            {
+                // skip because we cannnot really compare objectively
+                continue;
+            }
+
             if (doc is null)
             {
                 assertions.Add(new AssertionModel(field.Name!, field.Value!, "", false, "Failed to parse the result JSON"));

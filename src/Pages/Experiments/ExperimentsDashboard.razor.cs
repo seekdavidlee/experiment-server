@@ -131,4 +131,9 @@ public partial class ExperimentsDashboard
             }
         }
     }
+
+    private void Back()
+    {
+        NavigationManager!.NavigateTo("/");
+    }
 }

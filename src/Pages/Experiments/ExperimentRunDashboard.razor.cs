@@ -113,4 +113,9 @@ public partial class ExperimentRunDashboard
         UserSession!.Items[nameof(ExperimentsComparison)] = runs;
         NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/comparisons");
     }
+
+    private void Back()
+    {
+        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments");
+    }
 }
