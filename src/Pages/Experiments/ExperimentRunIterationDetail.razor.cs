@@ -24,6 +24,8 @@ public partial class ExperimentRunIterationDetail
     [Inject]
     private NavigationManager? NavigationManager { get; set; }
 
+    private int ImageZoomLevel { get; set; } = 100;
+
     private ExperimentRunResult? experimentRunResult;
     private ExperimentMetric? experimentMetric;
     private string? Base64Image { get; set; }

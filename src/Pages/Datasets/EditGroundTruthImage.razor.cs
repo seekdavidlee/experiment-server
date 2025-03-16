@@ -31,6 +31,8 @@ public partial class EditGroundTruthImage
 
     private GroundTruthImage? Model;
 
+    private int ImageZoomLevel { get; set; } = 100;
+
     protected override async Task OnInitializedAsync()
     {
         Model = UserSession!.Items[nameof(GroundTruthImage)] as GroundTruthImage;
