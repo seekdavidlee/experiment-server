@@ -88,7 +88,8 @@ public partial class ExperimentsComparison
                     new CompareTableColumn { Name = "Field" },
                     new CompareTableColumn { Name = "Expected" },
                     new CompareTableColumn { Name = "Actual" },
-                    new CompareTableColumn { Name = "Message" }
+                    new CompareTableColumn { Name = "Message" },
+                    new CompareTableColumn { Name = "Tags" }
                 ]
             };
 
@@ -124,10 +125,11 @@ public partial class ExperimentsComparison
                     return;
                 }
 
-                var groundTruthResponse = await Client.GetJsonAsync<GroundTruthImage>(imagePathObj.Replace(".jpg", ".json"));
+                var imagePath = imagePathObj.Replace(".jpg", ".json");
+                var groundTruthResponse = await Client.GetJsonAsync<GroundTruthImage>(imagePath);
                 if (!groundTruthResponse.Success)
                 {
-                    Logger!.LogError("unable to get ground truth json");
+                    Logger!.LogError("unable to get ground truth json for {imagePath}", imagePath);
                     return;
                 }
 
@@ -155,6 +157,7 @@ public partial class ExperimentsComparison
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = assertion.Expected });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Actual ?? ""] });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Message ?? ""] });
+                            newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = groundTruthResponse.Result.Tags.GetString() });
                             perRunFailureComparision.Rows!.Add(newPerFieldFailureComparisionRow);
                         }
                         else
@@ -189,7 +192,7 @@ public partial class ExperimentsComparison
             if (perRunFailureComparision.Rows!.Count != 0)
             {
                 // cleanup row name
-                foreach(var row in perRunFailureComparision.Rows!)
+                foreach (var row in perRunFailureComparision.Rows!)
                 {
                     var i = row.Name!.LastIndexOf('.');
                     row.Name = row.Name[..i];
