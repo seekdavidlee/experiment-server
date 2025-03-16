@@ -158,7 +158,7 @@ public class FileSystemApi
         try
         {
             var results = await httpClient!.GetFromJsonAsync<List<ExperimentModel>>(GetExperimentFilePath(projectId));
-            return results ?? [];
+            return results!.OrderByDescending(x => x.Created).ToList() ?? [];
         }
         catch (HttpRequestException ex)
         {
