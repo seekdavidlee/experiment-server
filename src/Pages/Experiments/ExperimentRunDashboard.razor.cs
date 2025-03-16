@@ -56,7 +56,7 @@ public partial class ExperimentRunDashboard
         new DialogOptions
         {
             CloseDialogOnEsc = true,
-            Width = "700px",
+            Width = "90%",
             Height = "700px",
         });
 
