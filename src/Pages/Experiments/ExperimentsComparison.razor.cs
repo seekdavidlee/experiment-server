@@ -85,6 +85,7 @@ public partial class ExperimentsComparison
                 Title = $"{experimentRun.Id} failures",
                 Rows = [],
                 ColumnNames = [
+                    new CompareTableColumn { Name = "Field" },
                     new CompareTableColumn { Name = "Expected" },
                     new CompareTableColumn { Name = "Actual" },
                     new CompareTableColumn { Name = "Message" }
@@ -145,11 +146,12 @@ public partial class ExperimentsComparison
                     }
                     else
                     {
-                        string key = $"{groundTruthResponse.Result!.DisplayName}.{assertion.Field}.{assertion.Expected}";
+                        string key = $"{groundTruthResponse.Result!.DisplayName}.{assertion.Field}";
                         var existingPerFieldFailureComparisionRow = perRunFailureComparision.Rows!.SingleOrDefault(x => x.Name == key);
                         if (existingPerFieldFailureComparisionRow is null)
                         {
                             var newPerFieldFailureComparisionRow = new CompareTableRow { Name = key, Cells = [] };
+                            newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = assertion.Field });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = assertion.Expected });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Actual ?? ""] });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Message ?? ""] });
@@ -157,13 +159,13 @@ public partial class ExperimentsComparison
                         }
                         else
                         {
-                            var actualCell = existingPerFieldFailureComparisionRow.Cells![1];
+                            var actualCell = existingPerFieldFailureComparisionRow.Cells![2];
                             if (assertion.Actual is not null && !actualCell.Values!.Contains(assertion.Actual))
                             {
                                 actualCell.Values = [.. actualCell.Values!, assertion.Actual];
                             }
 
-                            var messageCell = existingPerFieldFailureComparisionRow.Cells![2];
+                            var messageCell = existingPerFieldFailureComparisionRow.Cells![3];
                             if (assertion.Message is not null && !messageCell.Values!.Contains(assertion.Message))
                             {
                                 messageCell.Values = [.. messageCell.Values!, assertion.Message];
@@ -186,6 +188,12 @@ public partial class ExperimentsComparison
 
             if (perRunFailureComparision.Rows!.Count != 0)
             {
+                // cleanup row name
+                foreach(var row in perRunFailureComparision.Rows!)
+                {
+                    var i = row.Name!.LastIndexOf('.');
+                    row.Name = row.Name[..i];
+                }
                 PerRunFailureComparisions.Add(perRunFailureComparision);
             }
         }

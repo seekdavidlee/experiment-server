@@ -36,11 +36,16 @@
                             <td style="border: 1px solid black;">
                                 @if (cell.Values is not null)
                                 {
-                                    foreach (var value in cell.Values)
+                                    for (var i = 0; i < cell.Values.Length; i++)
                                     {
+                                        var value = cell.Values[i];
                                         if (!string.IsNullOrEmpty(value))
                                         {
-                                            <span>@value</span>  <hr />
+                                            <span>@value</span>
+                                            @if (i != cell.Values.Length - 1)
+                                            {
+                                                <hr />
+                                            }
                                         }
                                     }
                                 }
