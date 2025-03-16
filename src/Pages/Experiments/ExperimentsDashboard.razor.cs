@@ -30,11 +30,26 @@ public partial class ExperimentsDashboard
 
     private ProjectModel? projectModel;
 
+    private string? ErrorMessage { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if (UserSession!.Items.TryGetValue(nameof(ProjectModel), out var projectModelOut))
         {
             projectModel = (ProjectModel)projectModelOut;
+        }
+        else
+        {
+            // load project model
+            var response = await Client!.GetProjectAsync(ProjectId);
+            if (response.Success)
+            {
+                projectModel = response.Result;
+            }
+            else
+            {
+                ErrorMessage = response.ErrorMessage;
+            }
         }
         await RefreshAsync();
     }
@@ -76,7 +91,7 @@ public partial class ExperimentsDashboard
         }
     }
 
-    private async Task RunAsync()
+    private async Task NewAsync()
     {
         bool? result = await DialogService!.OpenAsync<EditExperimentDialog>("New Experiment", new Dictionary<string, object>
         {
@@ -96,6 +111,24 @@ public partial class ExperimentsDashboard
         if (result == true)
         {
             await RefreshAsync();
+        }
+    }
+
+    private async Task DeleteAsync(ExperimentModel experimentModel)
+    {
+        ErrorMessage = null;
+        var result = await DialogService!.Confirm($"Are you sure you want to delete <b>{experimentModel.Name}</b>? All runs will also be removed.", "Delete experiment", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+        if (result is not null && result == true)
+        {
+            var response = await Client!.DeleteExperimentAsync(ProjectId, experimentModel);
+            if (response.Success)
+            {
+                await RefreshAsync();
+            }
+            else
+            {
+                ErrorMessage = response.ErrorMessage;
+            }
         }
     }
 }

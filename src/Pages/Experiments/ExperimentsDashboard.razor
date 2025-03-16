@@ -5,10 +5,16 @@
 {
     <PageTitle>@projectModel.DisplayName experiments</PageTitle>
 }
+@if (ErrorMessage is not null)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+        @ErrorMessage
+    </RadzenAlert>
+}
 <RadzenStack>
     <RadzenRow>
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
-            <RadzenButton Click=@(args => RunAsync()) Text="Run" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@(args => NewAsync()) Text="New" ButtonStyle="ButtonStyle.Primary" />
             <RadzenButton Click=@(args => RefreshAsync()) Text="Refresh" ButtonStyle="ButtonStyle.Primary" />
         </RadzenStack>
     </RadzenRow>
@@ -39,6 +45,7 @@
                     <Template Context="entry">
                         <RadzenButton Text="Open" Click="()=>Open(entry)" />
                         <RadzenButton Text="Edit" Click="()=>Edit(entry)" />
+                        <RadzenButton Text="Delete" Click="()=>DeleteAsync(entry)" ButtonStyle="ButtonStyle.Danger" />
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>

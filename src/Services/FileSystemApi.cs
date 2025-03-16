@@ -72,6 +72,25 @@ public class FileSystemApi
         return [];
     }
 
+    public async Task<ApiResponse<ProjectModel?>> GetProjectAsync(Guid projectId)
+    {
+        var response = await httpClient!.GetAsync(projectsFilePath);
+        if (response.IsSuccessStatusCode)
+        {
+            var projects = await response.DeserializeResponse<List<ProjectModel>>();
+            if (projects is null)
+            {
+                return new ApiResponse<ProjectModel?>(false, "unable to load projects due to an internal error, please retry", default);
+            }
+
+            var project = projects.SingleOrDefault(x => x.Id == projectId);
+            return new ApiResponse<ProjectModel?>(project is not null, project is null ? "project is not found" : default, project);
+        }
+        var content = await response.Content.ReadAsStringAsync();
+        logger.LogError("error: {content}, http status: {status}", content, response.StatusCode);
+        return new ApiResponse<ProjectModel?>(false, $"error: {content}, http status: {response.StatusCode}", default);
+    }
+
     public async Task<ApiResponse> SaveProjectsAsync(List<ProjectModel> projects)
     {
         var json = JsonSerializer.Serialize(projects);
@@ -503,5 +522,29 @@ public class FileSystemApi
             logger.LogError(ex, "error: failed to delete experiment run");
             return new ApiResponse(false, ex.ToString());
         }
+    }
+
+    public async Task<ApiResponse> DeleteExperimentAsync(Guid projectId, ExperimentModel experimentModel)
+    {
+        // first delete all experiment runs
+        try
+        {
+            string path = $"{GetExperimentRunsPath(projectId, experimentModel.Id, false)}/";
+            var response = await httpClient!.DeleteAsync($"{config.FileSystemApi}/storage/files?path={path}");
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ApiResponse(false, $"error: {response.StatusCode}");
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "error: failed to delete experiment run");
+            return new ApiResponse(false, ex.ToString());
+        }
+
+        // then we can delete the experiment from the project
+        var experiments = await GetExperimentsAsync(projectId);
+        experiments = experiments.Where(x => x.Id != experimentModel.Id).ToList();
+        return await SaveExperimentsAsync(projectId, experiments);
     }
 }
