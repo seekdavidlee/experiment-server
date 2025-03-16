@@ -1,4 +1,6 @@
-﻿namespace ExperimentServer.Models;
+﻿using System.Text.Json;
+
+namespace ExperimentServer.Models;
 
 public class DataSetModel
 {
@@ -21,4 +23,9 @@ public class DataSetModelField
     /// </summary>
     /// <remarks>requires the use of LLM as judge as assert for how close the intent matches.</remarks>
     public bool IsSubjective { get; set; }
+
+    public DataSetModelField Clone()
+    {
+        return JsonSerializer.Deserialize<DataSetModelField>(JsonSerializer.Serialize(this))!;
+    }
 }

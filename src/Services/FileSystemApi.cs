@@ -236,6 +236,19 @@ public class FileSystemApi
         return images;
     }
 
+    public async Task<ApiResponse> SaveGroundTruthImageAsync(Guid datasetId, GroundTruthImage groundTruth)
+    {
+        var json = JsonSerializer.Serialize(groundTruth);
+        var response = await httpClient.PutAsync($"{PATH_PREFIX}/datasets/{datasetId}/{groundTruth.Id}.json", new StringContent(json));
+        if (!response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            logger.LogError("error: {content}, http status: {status}", content, response.StatusCode);
+            return new ApiResponse(false, $"error: {content}, http status: {response.StatusCode}");
+        }
+        return new ApiResponse(true, default);
+    }
+
     public async Task<ApiResponse> SaveGroundTruthImageAsync(Guid datasetId, GroundTruthImage groundTruth, byte[] imageBytes)
     {
         var json = JsonSerializer.Serialize(groundTruth);

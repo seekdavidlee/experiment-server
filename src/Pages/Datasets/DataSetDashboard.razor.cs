@@ -63,6 +63,7 @@ public partial class DataSetDashboard
 
         if (result == true)
         {
+            await UpdateGroundTruthImageFields(datasetModel);
             await RefreshAsync();
         }
     }
@@ -86,6 +87,66 @@ public partial class DataSetDashboard
         if (result == true)
         {
             await RefreshAsync();
+        }
+    }
+
+    private async Task UpdateGroundTruthImageFields(DataSetModel dataSetModel)
+    {
+        if (dataSetModel.Fields is null || dataSetModel.Fields.Length == 0)
+        {
+            return;
+        }
+
+        var groundTruths = await Client!.GetGroundTruthImagesAsync(dataSetModel.Id);
+        foreach (var groundTruth in groundTruths)
+        {
+            bool isDirty = false;
+
+            List<DataSetModelField> missing = [];
+            foreach (var dsField in dataSetModel.Fields)
+            {
+                if (groundTruth.Fields is null)
+                {
+                    continue;
+                }
+
+                var gtField = groundTruth.Fields.SingleOrDefault(x => x.Name == dsField.Name);
+                if (gtField is not null)
+                {
+                    if (gtField.Expression != dsField.Expression)
+                    {
+                        gtField.Expression = dsField.Expression;
+                        isDirty = true;
+                    }
+
+                    if (gtField.IsSubjective != dsField.IsSubjective)
+                    {
+                        gtField.IsSubjective = dsField.IsSubjective;
+                        isDirty = true;
+                    }
+                }
+                else
+                {
+                    missing.Add(dsField.Clone());
+                }
+            }
+
+            if (missing.Count > 0)
+            {
+                var list = groundTruth.Fields!.ToList();
+                list.AddRange(missing);
+                groundTruth.Fields = [.. list];
+                isDirty = true;
+            }
+
+            if (isDirty)
+            {
+                var response = await Client.SaveGroundTruthImageAsync(dataSetModel.Id, groundTruth);
+                if (!response.Success)
+                {
+                    await DialogService!.Alert(response.ErrorMessage, "Unable to update ground gruth");
+                }
+            }
         }
     }
 
