@@ -15,4 +15,10 @@ public class DataSetModelField
     public string? Expression { get; set; }
 
     public string? Value { get; set; }
+
+    /// <summary>
+    /// Gets or sets if field is subjective and cannot be matched exactly.
+    /// </summary>
+    /// <remarks>requires the use of LLM as judge as assert for how close the intent matches.</remarks>
+    public bool IsSubjective { get; set; }
 }

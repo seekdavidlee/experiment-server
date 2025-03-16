@@ -58,7 +58,7 @@ public partial class DataSetDashboard
         {
             CloseDialogOnEsc = true,
             Width = "700px",
-            Height = "400px",
+            Height = "700px",
         });
 
         if (result == true)
@@ -80,7 +80,7 @@ public partial class DataSetDashboard
         {
             CloseDialogOnEsc = true,
             Width = "700px",
-            Height = "400px",
+            Height = "700px",
         });
 
         if (result == true)
