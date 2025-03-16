@@ -175,4 +175,9 @@ public partial class DataSetDashboard
             }
         }
     }
+
+    private void Back()
+    {
+        NavigationManager!.NavigateTo("/");
+    }
 }

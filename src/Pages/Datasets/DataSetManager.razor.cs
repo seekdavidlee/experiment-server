@@ -62,4 +62,9 @@ public partial class DataSetManager
         UserSession!.Items[nameof(GroundTruthImage)] = groundTruthImage;
         NavigationManager!.NavigateTo($"datasets/{DatasetId}/images/ground-truth/{groundTruthImage.Id}");
     }
+
+    private void Back()
+    {
+        NavigationManager!.NavigateTo("/datasets");
+    }
 }
