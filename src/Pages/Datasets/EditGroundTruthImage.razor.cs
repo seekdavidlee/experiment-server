@@ -2,6 +2,9 @@
 using ExperimentServer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace ExperimentServer.Pages.Datasets;
 
@@ -50,13 +53,35 @@ public partial class EditGroundTruthImage
                 pageSize = base64Images!.Length;
                 Base64Image = base64Images[pageCounter];
             }
+
+            originalModelHash = ComputeHash(JsonSerializer.Serialize(Model));
         }
+    }
+
+    private string? originalModelHash;
+    private bool isImageChanged = false;
+
+    private static string ComputeHash(string input)
+    {
+        byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+        byte[] hashBytes = SHA256.HashData(inputBytes);
+
+        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
     }
 
     private const string SPLIT = ";base64,";
     private async Task SaveAsync()
     {
         ErrorMessage = null;
+
+        var currentModelHash = ComputeHash(JsonSerializer.Serialize(Model));
+        bool isModelChanged = originalModelHash != currentModelHash;
+        if (!isModelChanged && !isImageChanged)
+        {
+            // nothing has changed
+            NavigationManager!.NavigateTo($"datasets/{DatasetId}");
+            return;
+        }
 
         if (Model!.Tags is not null)
         {
@@ -96,14 +121,41 @@ public partial class EditGroundTruthImage
         var index = imageBase64.IndexOf(SPLIT, StringComparison.Ordinal);
         var raw = imageBase64[(index + SPLIT.Length)..];
 
-        var result = await Client!.SaveGroundTruthImageAsync(DatasetId, Model!, Convert.FromBase64String(raw)!);
-        if (result.Success)
+        if (isModelChanged && isImageChanged)
         {
-            NavigationManager!.NavigateTo($"datasets/{DatasetId}");
+            var result = await Client!.SaveGroundTruthImageAsync(DatasetId, Model!, Convert.FromBase64String(raw)!);
+            if (result.Success)
+            {
+                NavigationManager!.NavigateTo($"datasets/{DatasetId}");
+            }
+            else
+            {
+                ErrorMessage = result.ErrorMessage;
+            }
         }
-        else
+        else if (isModelChanged)
         {
-            ErrorMessage = result.ErrorMessage;
+            var result = await Client!.SaveGroundTruthImageAsync(DatasetId, Model!);
+            if (result.Success)
+            {
+                NavigationManager!.NavigateTo($"datasets/{DatasetId}");
+            }
+            else
+            {
+                ErrorMessage = result.ErrorMessage;
+            }
+        }
+        else if (isImageChanged)
+        {
+            var result = await Client!.SaveGroundTruthImageAsync(DatasetId, Model.Id, Convert.FromBase64String(raw)!);
+            if (result.Success)
+            {
+                NavigationManager!.NavigateTo($"datasets/{DatasetId}");
+            }
+            else
+            {
+                ErrorMessage = result.ErrorMessage;
+            }
         }
     }
 
@@ -178,6 +230,8 @@ public partial class EditGroundTruthImage
 
             pageSize = base64Images!.Length;
             Base64Image = base64Images![pageCounter];
+
+            isImageChanged = true;
 
             StateHasChanged();
         }

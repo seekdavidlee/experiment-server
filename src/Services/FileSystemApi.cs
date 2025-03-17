@@ -249,6 +249,19 @@ public class FileSystemApi
         return new ApiResponse(true, default);
     }
 
+    public async Task<ApiResponse> SaveGroundTruthImageAsync(Guid datasetId, Guid groundTruthId, byte[] imageBytes)
+    {
+        var imageResponse = await httpClient.PutAsync($"{PATH_PREFIX}/datasets/{datasetId}/{groundTruthId}.jpg", new ByteArrayContent(imageBytes));
+        if (!imageResponse.IsSuccessStatusCode)
+        {
+            var content = await imageResponse.Content.ReadAsStringAsync();
+            logger.LogError("error: {content}, http status: {status}", content, imageResponse.StatusCode);
+            return new ApiResponse(false, $"error: {content}, http status: {imageResponse.StatusCode}");
+        }
+
+        return new ApiResponse(true, default);
+    }
+
     public async Task<ApiResponse> SaveGroundTruthImageAsync(Guid datasetId, GroundTruthImage groundTruth, byte[] imageBytes)
     {
         var json = JsonSerializer.Serialize(groundTruth);
@@ -265,7 +278,7 @@ public class FileSystemApi
         {
             var content = await imageResponse.Content.ReadAsStringAsync();
             logger.LogError("error: {content}, http status: {status}", content, imageResponse.StatusCode);
-            return new ApiResponse(false, $"error: {content}, http status: {response.StatusCode}");
+            return new ApiResponse(false, $"error: {content}, http status: {imageResponse.StatusCode}");
         }
 
         return new ApiResponse(true, default);

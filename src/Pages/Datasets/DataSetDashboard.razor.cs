@@ -73,7 +73,7 @@ public partial class DataSetDashboard
         bool? result = await DialogService!.OpenAsync<EditDataSetDialog>("New DataSet", new Dictionary<string, object>
         {
              { "DialogService", DialogService },
-             { "Model", new DataSetModel() },
+             { "Model", new DataSetModel{ Fields=[] } },
              { "Models", model.Items },
              { "Client", Client! }
         },
