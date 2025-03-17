@@ -456,36 +456,47 @@ public class FileSystemApi
         return items;
     }
 
-    public async Task<List<ExperimentRun>> GetExperimentRunsAsync(Guid projectId, Guid experimentId)
+    public async Task<(List<ExperimentRun>, HashSet<Guid>)> GetExperimentRunsAsync(Guid projectId, Guid experimentId, HashSet<Guid>? existingComplete)
     {
         List<ExperimentRun> runs = [];
+        HashSet<Guid> fullList = [];
+
         try
         {
             var results = await httpClient!.GetFromJsonAsync<string[]>(GetExperimentRunsPath(projectId, experimentId, true));
-            if (results is null || results.Length == 0) return [];
+            if (results is null || results.Length == 0) return ([], []);
 
 
             // todo: implement paging
             foreach (var path in results.Where(x => x.EndsWith("/run.json")))
             {
+                var i = path.IndexOf("/run.json");
+                var partPaths = path[..i].Split('/');
+                var pathId = Guid.Parse(partPaths[^1]);
+                fullList.Add(pathId);
+                if (existingComplete is not null && existingComplete.Contains(pathId))
+                {                    
+                    continue;
+                }
+
                 var run = await httpClient!.GetFromJsonAsync<ExperimentRun>($"{config.FileSystemApi}/storage/files/object?path={path}");
                 if (run is not null)
                 {
-                    runs.Add(run);
+                    runs.Add(run);                    
                 }
             }
 
-            return [.. runs.OrderByDescending(x => x.Start)];
+            return (runs, fullList);
         }
         catch (HttpRequestException ex)
         {
             if (ex.StatusCode == HttpStatusCode.NotFound)
             {
-                return [];
+                return ([], []);
             }
             logger.LogError(ex, "error: failed to get experiments");
         }
-        return runs;
+        return (runs, fullList);
     }
 
     public async Task<ApiResponse<ExperimentRun?>> GetExperimentRunAsync(Guid projectId, Guid experimentId, Guid id)

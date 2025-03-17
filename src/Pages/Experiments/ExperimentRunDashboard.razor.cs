@@ -68,9 +68,13 @@ public partial class ExperimentRunDashboard
 
     private async Task RefreshAsync()
     {
+        var existingComplete = model.Items.Where(x => x.Value!.End is not null).Select(x => x.Value!.Id).ToHashSet();
+        var (results, fullList) = await Client!.GetExperimentRunsAsync(ProjectId, ExperimentId, existingComplete);
+
+        var list = new List<ExperimentRunModel>(model.Items.Where(x => x.Value!.End is not null));
+        list.AddRange(results.Select(x => new ExperimentRunModel { Value = x }));
         model.Items.Clear();
-        var results = await Client!.GetExperimentRunsAsync(ProjectId, ExperimentId);
-        model.Items.AddRange(results.Select(x => new ExperimentRunModel { Value = x }));
+        model.Items.AddRange(list.Where(x => fullList.Contains(x.Value!.Id)).OrderByDescending(x => x.Value!.Start));
         await dataGrid!.Reload();
     }
 
