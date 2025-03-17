@@ -75,12 +75,6 @@ public partial class RunExperimentForm
             return;
         }
 
-        //if (string.IsNullOrEmpty(model.UserPrompt))
-        //{
-        //    ErrorMessage = "please enter a valid user prompt";
-        //    return;
-        //}
-
         if (model.Iterations < 1)
         {
             ErrorMessage = "please enter a select a valid iteration";
@@ -124,7 +118,7 @@ public partial class RunExperimentForm
 
         if (OriginalPrompts is not null && (OriginalPrompts.System != model.SystemPrompt || OriginalPrompts.User != model.UserPrompt))
         {
-            await Client.SavePromptsAsync(ProjectId, ExperimentId, new Prompts(model.SystemPrompt, model.UserPrompt));
+            await Client.SavePromptsAsync(ProjectId, ExperimentId, new Prompts(model.SystemPrompt, model.UserPrompt ?? ""));
         }
 
         NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs");

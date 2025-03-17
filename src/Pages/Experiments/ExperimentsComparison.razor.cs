@@ -57,7 +57,7 @@ public partial class ExperimentsComparison
         Dictionary<string, CompareTableRow> rows = [];
         foreach (var experimentRun in runs)
         {
-            colNames.Add(experimentRun.Id.ToString());
+            colNames.Add(experimentRun.GetIdOrDescription());
             foreach (var p in props)
             {
                 if (!rows.TryGetValue(p, out var row))
@@ -75,14 +75,14 @@ public partial class ExperimentsComparison
 
     private async Task InitAsync(List<ExperimentRun> runs)
     {
-        List<string> fieldAccuracyColNames = [];
+        List<(string, Guid)> fieldAccuracyColNames = [];
         Evaluation eval = new();
         Dictionary<string, CompareTableRow> fieldAccuracyRows = [];
         foreach (var experimentRun in runs)
         {
             CompareTableModel perRunFailureComparision = new()
             {
-                Title = $"{experimentRun.Id} failures",
+                Title = $"{experimentRun.GetIdOrDescription()} failures",
                 Rows = [],
                 ColumnNames = [
                     new CompareTableColumn { Name = "Field" },
@@ -93,7 +93,7 @@ public partial class ExperimentsComparison
                 ]
             };
 
-            fieldAccuracyColNames.Add(experimentRun.Id.ToString());
+            fieldAccuracyColNames.Add((experimentRun.GetIdOrDescription(), experimentRun.Id));
             Dictionary<string, FieldAccuracy> fields = [];
 
             var results = await Client!.GetExperimentRunResultsAsync(ProjectId, ExperimentId, experimentRun.Id);
@@ -205,8 +205,8 @@ public partial class ExperimentsComparison
         {
             ColumnNames = [.. fieldAccuracyColNames.Select(x => new CompareTableColumn
             {
-                Name = x,
-                HyperLink = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{x}"
+                Name = x.Item1,
+                HyperLink = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{x.Item2}"
             })],
             Rows = [.. fieldAccuracyRows.Values]
         };

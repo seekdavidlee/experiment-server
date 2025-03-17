@@ -69,10 +69,16 @@
         </RadzenColumn>
     </RadzenRow>
     <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn SizeMD="1">
+            <RadzenLabel Text="Description" title="Description" />
+        </RadzenColumn>
+        <RadzenColumn SizeMD="2">
+            <RadzenTextBox Disabled=@IsSaving Style="width: 100%;" @bind-Value=@model.Description />
+        </RadzenColumn>
         <RadzenColumn SizeMD="2">
             <RadzenLabel Text="Ground Truth Tag Filters" title="Ground Truth Tag Filters" />
         </RadzenColumn>
-        <RadzenColumn SizeMD="10">
+        <RadzenColumn SizeMD="7">
             <RadzenTextArea Disabled=@IsSaving Style="width: 100%;" @bind-Value=@GroundTruthTagFilters />
         </RadzenColumn>
     </RadzenRow>

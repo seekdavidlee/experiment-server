@@ -49,9 +49,9 @@
                         <RadzenCheckBox @bind-Value="entry.IsSelected" />
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ExperimentRunModel" Title="Id" Width="20px">
+                <RadzenDataGridColumn TItem="ExperimentRunModel" Title="Id/Description" Width="20px">
                     <Template Context="entry">
-                        @entry.Value!.Id
+                        @entry.Value!.GetIdOrDescription()
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="ExperimentRunModel" Title="Start" Width="20px">
