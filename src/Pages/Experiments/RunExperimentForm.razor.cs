@@ -1,11 +1,10 @@
 ﻿using ExperimentServer.Models;
 using ExperimentServer.Services;
 using Microsoft.AspNetCore.Components;
-using Radzen;
 
-namespace ExperimentServer.Shared;
+namespace ExperimentServer.Pages.Experiments;
 
-public partial class RunExperimentDialog
+public partial class RunExperimentForm
 {
     private readonly ExperimentRun model = new()
     {
@@ -18,13 +17,13 @@ public partial class RunExperimentDialog
     [Inject]
     public InferenceApi? InferenceClient { get; set; }
 
-    [Parameter]
+    [Inject]
     public FileSystemApi? Client { get; set; }
 
-    private bool IsSaving { get; set; }
+    [Inject]
+    public NavigationManager? NavigationManager { get; set; }
 
-    [Parameter]
-    public DialogService? DialogService { get; set; }
+    private bool IsSaving { get; set; }
 
     [Parameter]
     public Guid ProjectId { get; set; }
@@ -39,6 +38,7 @@ public partial class RunExperimentDialog
     private List<string>? ModelIds { get; set; }
 
     private Prompts? OriginalPrompts;
+    private string? GroundTruthTagFilters { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,11 +75,11 @@ public partial class RunExperimentDialog
             return;
         }
 
-        if (string.IsNullOrEmpty(model.UserPrompt))
-        {
-            ErrorMessage = "please enter a valid user prompt";
-            return;
-        }
+        //if (string.IsNullOrEmpty(model.UserPrompt))
+        //{
+        //    ErrorMessage = "please enter a valid user prompt";
+        //    return;
+        //}
 
         if (model.Iterations < 1)
         {
@@ -96,6 +96,16 @@ public partial class RunExperimentDialog
         ErrorMessage = null;
         IsSaving = true;
         StateHasChanged();
+
+        if (GroundTruthTagFilters is not null)
+        {
+            var parts = GroundTruthTagFilters.Split(';');
+            model.GroundTruthTagFilters = parts.Where(x => x.Split('=').Length == 2).Select(x =>
+            {
+                var parts = x.Split('=');
+                return new ExperimentRunGroundTruthTagFilter { Name = parts[0], Value = parts[1] };
+            }).ToArray();
+        }
 
         model.ExperimentId = ExperimentId;
         model.ProjectId = ProjectId;
@@ -117,11 +127,12 @@ public partial class RunExperimentDialog
             await Client.SavePromptsAsync(ProjectId, ExperimentId, new Prompts(model.SystemPrompt, model.UserPrompt));
         }
 
-        DialogService!.Close(true);
+        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs");
+
     }
 
     private void Cancel()
     {
-        DialogService!.Close(false);
+        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs");
     }
 }

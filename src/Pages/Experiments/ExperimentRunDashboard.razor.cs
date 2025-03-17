@@ -44,26 +44,9 @@ public partial class ExperimentRunDashboard
         await RefreshAsync();
     }
 
-    private async Task RunAsync()
+    private void Run()
     {
-        bool? result = await DialogService!.OpenAsync<RunExperimentDialog>("New run", new Dictionary<string, object>
-        {
-             { "DialogService", DialogService },
-             { "ExperimentId", ExperimentId! },
-             { "ProjectId", ProjectId! },
-             { "Client", Client! },
-        },
-        new DialogOptions
-        {
-            CloseDialogOnEsc = true,
-            Width = "90%",
-            Height = "700px",
-        });
-
-        if (result == true)
-        {
-            await RefreshAsync();
-        }
+        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/run");
     }
 
     private async Task RefreshAsync()

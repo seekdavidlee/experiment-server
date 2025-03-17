@@ -39,6 +39,7 @@ public class ExperimentRun
     public DateTime? Start { get; set; }
     public DateTime? End { get; set; }
     public int Iterations { get; set; }
+    public ExperimentRunGroundTruthTagFilter[]? GroundTruthTagFilters { get; set; }
 }
 
 public enum ExperimentLogLevel
@@ -71,4 +72,11 @@ public class ExperimentRunResult
     public int CompletionTokens { get; set; }
     public int PromptTokens { get; set; }
     public int TotalTokens { get; set; }
+}
+
+public class ExperimentRunGroundTruthTagFilter
+{
+    public string? Name { get; set; }
+
+    public string? Value { get; set; }
 }
