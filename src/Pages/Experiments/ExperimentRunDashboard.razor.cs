@@ -71,7 +71,7 @@ public partial class ExperimentRunDashboard
     private async Task DeleteAsync(ExperimentRun experimentRun)
     {
         ErrorMessage = null;
-        var result = await DialogService!.Confirm($"Are you sure you want to delete {experimentRun.Id}?", "Delete run", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+        var result = await DialogService!.Confirm($"Are you sure you want to delete <b>{experimentRun.GetIdOrDescription()}</b>?", "Delete run", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
         if (result is not null && result == true)
         {
             var response = await Client!.DeleteExperimentRunAsync(ProjectId, ExperimentId, experimentRun.Id);
