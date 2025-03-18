@@ -214,7 +214,6 @@ public partial class EditGroundTruthImage
 
             if (file.ContentType == "application/pdf")
             {
-                //IsProcessing = true;
                 StateHasChanged();
                 var pdfImages = await ImageConversionApi!.ToImagesAsync(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024));
                 if (pdfImages.Length > 0)
@@ -222,7 +221,7 @@ public partial class EditGroundTruthImage
                     base64Images = pdfImages.Select(x => $"data:image/jpg;base64,{x}").ToArray();
 
                 }
-                //IsProcessing = false;
+
                 StateHasChanged();
             }
 
@@ -237,6 +236,7 @@ public partial class EditGroundTruthImage
             Model.DisplayName = file.Name;
             var tags = Model.Tags is not null ? [.. Model.Tags] : new List<GroundTruthTag>();
             tags.Add(new GroundTruthTag { Name = nameof(file.ContentType), Value = file.ContentType });
+            Model.Tags = [.. tags];
 
             pageSize = base64Images!.Length;
             Base64Image = base64Images![pageCounter];
@@ -273,6 +273,12 @@ public partial class EditGroundTruthImage
         }
         else
         {
+            var tags = Model!.Tags is not null ? [.. Model.Tags] : new List<GroundTruthTag>();
+            if (ImageInfo is not null)
+            {
+                tags.Add(new GroundTruthTag { Name = "image_original_size", Value = $"width:{ImageInfo.Width}, height:{ImageInfo.Height}" });
+            }
+
             ImageInfo = null;
 
             base64Images![pageCounter] = $"data:image/jpg;base64,{Convert.ToBase64String(result.Result!)}";
@@ -282,7 +288,11 @@ public partial class EditGroundTruthImage
             if (imageInfoResponse.Success)
             {
                 ImageInfo = imageInfoResponse.Result;
+                tags.Add(new GroundTruthTag { Name = "image_new_size", Value = $"width:{ImageInfo!.Width}, height:{ImageInfo.Height}" });
             }
+            Model.Tags = [.. tags];
+
+            isImageChanged = true;
         }
     }
 }

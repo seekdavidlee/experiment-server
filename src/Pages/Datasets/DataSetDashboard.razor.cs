@@ -5,6 +5,7 @@ using ExperimentServer.Shared;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using Radzen.Blazor;
+using System.Text.Json;
 
 namespace ExperimentServer.Pages.Datasets;
 
@@ -74,6 +75,32 @@ public partial class DataSetDashboard
         {
              { "DialogService", DialogService },
              { "Model", new DataSetModel{ Fields=[] } },
+             { "Models", model.Items },
+             { "Client", Client! }
+        },
+        new DialogOptions
+        {
+            CloseDialogOnEsc = true,
+            Width = "700px",
+            Height = "700px",
+        });
+
+        if (result == true)
+        {
+            await RefreshAsync();
+        }
+    }
+
+    private async Task CopyAsync(DataSetModel datasetModel)
+    {
+        var copyModel = JsonSerializer.Deserialize<DataSetModel>(JsonSerializer.Serialize(datasetModel));
+        copyModel!.Id = Guid.Empty;
+        copyModel.DisplayName = $"{copyModel.DisplayName} copy";
+
+        bool? result = await DialogService!.OpenAsync<EditDataSetDialog>("Copy DataSet", new Dictionary<string, object>
+        {
+             { "DialogService", DialogService },
+             { "Model",  copyModel },
              { "Models", model.Items },
              { "Client", Client! }
         },
