@@ -2,6 +2,12 @@
 @using ExperimentServer.Models
 
 <RadzenStack>
+    @if (ErrorMessage is not null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+            @ErrorMessage
+        </RadzenAlert>
+    }
     <RadzenRow>
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
             <RadzenRow Style="width:100%">
@@ -75,6 +81,8 @@
                 <RadzenDataGridColumn TItem="GroundTruthImage" Title="" Width="20px">
                     <Template Context="entry">
                         <RadzenButton Click=@(args => Edit(entry)) Text="View" ButtonStyle="ButtonStyle.Primary" />
+                        <RadzenButton Click=@(args => DeleteAsync(entry)) Text="Delete" ButtonStyle="ButtonStyle.Danger" />
+                        <RadzenButton Click=@(args => CopyTo(entry)) Text="Copy" ButtonStyle="ButtonStyle.Primary" />
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>

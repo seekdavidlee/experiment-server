@@ -1,5 +1,6 @@
 ﻿using ExperimentServer.Models;
 using ExperimentServer.Services;
+using ExperimentServer.Shared;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using Radzen.Blazor;
@@ -29,6 +30,8 @@ public partial class DataSetManager
     public Guid DatasetId { get; set; }
 
     private DataSetModel? DataSetModel { get; set; }
+
+    private string? ErrorMessage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,5 +69,40 @@ public partial class DataSetManager
     private void Back()
     {
         NavigationManager!.NavigateTo("/datasets");
+    }
+
+    private async Task CopyTo(GroundTruthImage groundTruthImage)
+    {
+        await DialogService!.OpenAsync<CopyGroundTruthToDatasetDialog>("Copy Ground Truth", new Dictionary<string, object>
+        {
+             { "DialogService", DialogService },
+             { "Model", groundTruthImage },
+             { "Client", Client! },
+             { "ExcludeDatasetId", DatasetId },
+        },
+        new DialogOptions
+        {
+            CloseDialogOnEsc = true,
+            Width = "500px",
+            Height = "400px",
+        });
+    }
+
+    private async Task DeleteAsync(GroundTruthImage groundTruthImage)
+    {
+        ErrorMessage = null;
+        var result = await DialogService!.Confirm($"Are you sure you want to delete <b>{groundTruthImage.DisplayName}</b>?", "Delete ground truth", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+        if (result is not null && result == true)
+        {
+            var response = await Client!.DeleteGroundTruthImageAsync(DatasetId, groundTruthImage);
+            if (response.Success)
+            {
+                await RefreshAsync();
+            }
+            else
+            {
+                ErrorMessage = response.ErrorMessage;
+            }
+        }
     }
 }

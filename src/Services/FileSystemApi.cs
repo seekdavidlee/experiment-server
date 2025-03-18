@@ -1,4 +1,5 @@
 ﻿using ExperimentServer.Models;
+using System.Data;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
@@ -262,6 +263,31 @@ public class FileSystemApi
         return new ApiResponse(true, default);
     }
 
+    public async Task<ApiResponse> DeleteGroundTruthImageAsync(Guid datasetId, GroundTruthImage groundTruthImage)
+    {
+        try
+        {
+            var response = await httpClient!.DeleteAsync($"{FILE_PATH_PREFIX}/datasets/{datasetId}/{groundTruthImage.Id}.jpg");
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogError("error: failed to delete ground truth image: {imagePath}","");
+            }
+
+            response = await httpClient!.DeleteAsync($"{FILE_PATH_PREFIX}/datasets/{datasetId}/{groundTruthImage.Id}.json");
+            if (response.IsSuccessStatusCode)
+            {
+                return new ApiResponse(true, default);
+            }
+
+            return new ApiResponse(false, $"error: {response.StatusCode}");
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "error: failed to delete ground truth");
+            return new ApiResponse(false, ex.ToString());
+        }
+    }
+
     public async Task<ApiResponse> SaveGroundTruthImageAsync(Guid datasetId, GroundTruthImage groundTruth, byte[] imageBytes)
     {
         var json = JsonSerializer.Serialize(groundTruth);
@@ -475,14 +501,14 @@ public class FileSystemApi
                 var pathId = Guid.Parse(partPaths[^1]);
                 fullList.Add(pathId);
                 if (existingComplete is not null && existingComplete.Contains(pathId))
-                {                    
+                {
                     continue;
                 }
 
                 var run = await httpClient!.GetFromJsonAsync<ExperimentRun>($"{config.FileSystemApi}/storage/files/object?path={path}");
                 if (run is not null)
                 {
-                    runs.Add(run);                    
+                    runs.Add(run);
                 }
             }
 
