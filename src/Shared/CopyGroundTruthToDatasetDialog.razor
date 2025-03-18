@@ -6,12 +6,18 @@
         </RadzenAlert>
     }
     <RadzenRow>
-        <RadzenLabel Text="Select a Dataset to Copy to:" />
+        @if (Model is not null)
+        {
+            var text = $"Select a Dataset copy '{Model.DisplayName}' to:";
+            <RadzenLabel Text=@text />
+        }
     </RadzenRow>
     <RadzenRow>
-        <RadzenDropDown @bind-Value=@SelectedDataset Data=@Datasets TextProperty="DisplayName" />
-    </RadzenRow>
-    <RadzenRow>
-        <RadzenButton Click=@(args => SaveAsync()) Text="Save" ButtonStyle="ButtonStyle.Primary" />
+        <RadzenColumn>
+            <RadzenDropDown @bind-Value=@SelectedDataset Data=@Datasets TextProperty="DisplayName" />
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenButton Click=@(args => SaveAsync()) Text="Copy" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenColumn>
     </RadzenRow>
 </RadzenStack>

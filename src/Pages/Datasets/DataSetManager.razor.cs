@@ -84,7 +84,7 @@ public partial class DataSetManager
         {
             CloseDialogOnEsc = true,
             Width = "500px",
-            Height = "400px",
+            Height = "300px",
         });
     }
 

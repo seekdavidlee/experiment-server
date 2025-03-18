@@ -40,7 +40,7 @@ public partial class CopyGroundTruthToDatasetDialog
             return;
         }
 
-        var imgResponse = await Client!.GetGroundTruthImageAsync(SelectedDataset.Id, Model!);
+        var imgResponse = await Client!.GetGroundTruthImageAsync(ExcludeDatasetId, Model!);
         if (!imgResponse.Success)
         {
             ErrorMessage = imgResponse.ErrorMessage;
@@ -53,16 +53,21 @@ public partial class CopyGroundTruthToDatasetDialog
         List<GroundTruthTag> copyTags = [new GroundTruthTag { Name = "image_dataset_source", Value = $"Dataset: {Model!.DisplayName}" }];
         if (copy.Tags is null)
         {
-            copy.Tags = [..copyTags];
+            copy.Tags = [.. copyTags];
         }
         else
         {
             var list = copy.Tags.ToList();
             list.AddRange(copyTags);
-            copy.Tags = copyTags.ToArray();
+            copy.Tags = [.. list];
         }
 
-        await Client!.SaveGroundTruthImageAsync(SelectedDataset.Id, copy, imgResponse.Result);
+        var res = await Client!.SaveGroundTruthImageAsync(SelectedDataset.Id, copy, imgResponse.Result);
+        if (!res.Success)
+        {
+            ErrorMessage = res.ErrorMessage;
+            return;
+        }
 
         DialogService!.Close();
     }

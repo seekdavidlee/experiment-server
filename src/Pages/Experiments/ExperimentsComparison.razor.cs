@@ -27,6 +27,7 @@ public partial class ExperimentsComparison
     private ILogger<ExperimentsComparison>? Logger { get; set; }
 
     private CompareTableModel? Inputs;
+    private CompareTableModel? Outputs;
     private CompareTableModel? FieldsAccuracy;
     private readonly List<CompareTableModel> PerRunFailureComparisions = [];
 
@@ -70,11 +71,22 @@ public partial class ExperimentsComparison
             }
         }
 
-        Inputs = new CompareTableModel { ColumnNames = [.. colNames.Select(x => new CompareTableColumn { Name = x })], Rows = [.. rows.Values] };
+        Inputs = new CompareTableModel { Title = "Inputs", ColumnNames = [.. colNames.Select(x => new CompareTableColumn { Name = x })], Rows = [.. rows.Values] };
     }
 
     private async Task InitAsync(List<ExperimentRun> runs)
     {
+        //Outputs = new CompareTableModel
+        //{
+        //    Title = "Outputs",
+        //    ColumnNames = [new CompareTableColumn
+        //    {
+        //        Name = $"Total {nameof(ExperimentRunResult.PromptTokens)}"  }, new CompareTableColumn { Name = $"Total {nameof(ExperimentRunResult.CompletionTokens)}" }],
+        //    Rows = []
+        //};
+
+        Dictionary<string, int> outputRows = [];
+
         List<(string, Guid)> fieldAccuracyColNames = [];
         Evaluation eval = new();
         Dictionary<string, CompareTableRow> fieldAccuracyRows = [];
@@ -132,6 +144,8 @@ public partial class ExperimentsComparison
                     Logger!.LogError("unable to get ground truth json for {imagePath}", imagePath);
                     return;
                 }
+
+                //res.CompletionTokens
 
                 foreach (var assertion in eval.GetAssertions(groundTruthResponse.Result!, res.Text!))
                 {
