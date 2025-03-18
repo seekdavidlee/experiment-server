@@ -36,6 +36,10 @@ public partial class EditGroundTruthImage
 
     private int ImageZoomLevel { get; set; } = 100;
 
+    private ImageInfo? ImageInfo { get; set; }
+
+    private int ResizePercent { get; set; } = 50;
+
     protected override async Task OnInitializedAsync()
     {
         Model = UserSession!.Items[nameof(GroundTruthImage)] as GroundTruthImage;
@@ -49,6 +53,12 @@ public partial class EditGroundTruthImage
             }
             else if (result.Result.Length > 0)
             {
+                var imageInfoResponse = await ImageConversionApi!.GetImageInfo(result.Result);
+                if (imageInfoResponse.Success)
+                {
+                    ImageInfo = imageInfoResponse.Result;
+                }
+
                 base64Images = [$"data:image/jpg;base64,{Convert.ToBase64String(result.Result)}"];
                 pageSize = base64Images!.Length;
                 Base64Image = base64Images[pageCounter];
@@ -249,5 +259,30 @@ public partial class EditGroundTruthImage
 
         tags.Add(new GroundTruthTag());
         Model.Tags = [.. tags];
+    }
+
+    private async Task Resize()
+    {
+        var imageBase64 = base64Images![pageCounter];
+        var index = imageBase64.IndexOf("base64,", StringComparison.Ordinal);
+        var rawImage = imageBase64[(index + "base64,".Length)..];
+        var result = await ImageConversionApi!.ResizeImageInfo(Convert.FromBase64String(rawImage), ResizePercent);
+        if (!result.Success)
+        {
+            ErrorMessage = result.ErrorMessage;
+        }
+        else
+        {
+            ImageInfo = null;
+
+            base64Images![pageCounter] = $"data:image/jpg;base64,{Convert.ToBase64String(result.Result!)}";
+            Base64Image = base64Images![pageCounter];
+
+            var imageInfoResponse = await ImageConversionApi!.GetImageInfo(result.Result!);
+            if (imageInfoResponse.Success)
+            {
+                ImageInfo = imageInfoResponse.Result;
+            }
+        }
     }
 }

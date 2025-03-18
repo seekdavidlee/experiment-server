@@ -9,6 +9,8 @@ public class Config
 
     public string? FileSystemImagePath { get; set; }
 
+    public string? ImageConversionApiBaseUrl { get; set; }
+
     public string? ImageConversionApi { get; set; }
 
     public string? InferenceApiBaseUrl { get; set; }

@@ -32,7 +32,7 @@ builder.Services.AddHttpClient(nameof(Config.InferenceApi), client =>
 
 builder.Services.AddHttpClient(nameof(Config.ImageConversionApi), client =>
 {
-    client.BaseAddress = new Uri(config.ApiBaseUrl!);
+    client.BaseAddress = new Uri(config.ImageConversionApiBaseUrl!);
     client.Timeout = TimeSpan.FromMinutes(8);
 });
 
