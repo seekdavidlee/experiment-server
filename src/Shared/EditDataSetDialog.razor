@@ -21,6 +21,22 @@
                 <RadzenTextBox Disabled=@IsSaving Style="width: 100%;" Name="Name" @bind-Value=@WorkingCopy.DisplayName />
             </RadzenColumn>
         </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn Size="12" SizeMD="4">
+                <RadzenLabel Text="Purpose" title="Purpose" />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="8">
+                <RadzenDropDown Style="width: 100%;" Data=@purposes @bind-Value="@selectedPurpose" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn Size="12" SizeMD="4">
+                <RadzenLabel Text="Type" title="Type" />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="8">
+                <RadzenDropDown Style="width: 100%;" Data=@types @bind-Value="@selectedType" />
+            </RadzenColumn>
+        </RadzenRow>
         @if (WorkingCopy.Fields is not null)
         {
             <RadzenRow AlignItems="AlignItems.Center">

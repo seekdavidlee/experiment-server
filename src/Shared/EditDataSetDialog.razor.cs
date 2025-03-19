@@ -25,11 +25,19 @@ public partial class EditDataSetDialog
     private bool IsSaving { get; set; }
 
     private DataSetModel? WorkingCopy;
+
+    private readonly IEnumerable<string> purposes = Enum.GetValues(typeof(DataSetPurposes)).Cast<DataSetPurposes>().Select(x => x.ToString());
+    private readonly IEnumerable<string> types = Enum.GetValues(typeof(DataSetModelTypes)).Cast<DataSetModelTypes>().Select(x => x.ToString());
+    private string? selectedPurpose;
+    private string? selectedType;
+
     protected override void OnInitialized()
     {
         if (Model is not null)
         {
             WorkingCopy = JsonSerializer.Deserialize<DataSetModel>(JsonSerializer.Serialize(Model));
+            selectedPurpose = WorkingCopy!.Purpose.ToString();
+            selectedType = WorkingCopy!.Type.ToString();
         }
     }
 
@@ -48,6 +56,18 @@ public partial class EditDataSetDialog
         if (WorkingCopy.Fields is null || WorkingCopy.Fields.Length == 0)
         {
             ErrorMessage = "please enter at least one field";
+            return;
+        }
+
+        if (selectedPurpose is null)
+        {
+            ErrorMessage = "please select a purpose";
+            return;
+        }
+
+        if (selectedType is null)
+        {
+            ErrorMessage = "please select a type";
             return;
         }
 
@@ -75,6 +95,9 @@ public partial class EditDataSetDialog
         {
             WorkingCopy.Id = Guid.NewGuid();
         }
+
+        WorkingCopy.Purpose = Enum.Parse<DataSetPurposes>(selectedPurpose!);
+        WorkingCopy.Type = Enum.Parse<DataSetModelTypes>(selectedType!);
 
         Models = Models!.Where(x => x.Id != WorkingCopy.Id).ToList();
         Models.Add(WorkingCopy);

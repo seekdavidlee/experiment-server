@@ -7,7 +7,24 @@ public class DataSetModel
     public Guid Id { get; set; }
     public string? DisplayName { get; set; }
 
+    public DataSetPurposes Purpose { get; set; }
+
+    public DataSetModelTypes Type { get; set; }
+
     public DataSetModelField[]? Fields { get; set; }
+}
+
+public enum DataSetPurposes
+{
+    Unspecified,
+    Training,
+    Validation
+}
+
+public enum DataSetModelTypes
+{
+    Unspecified,
+    Images
 }
 
 public class DataSetModelField

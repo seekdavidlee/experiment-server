@@ -30,7 +30,9 @@
                 </RadzenRow>
             </HeaderTemplate>
             <Columns>
-                <RadzenDataGridColumn TItem="DataSetModel" Title="Name" Property="DisplayName" Width="50px" />
+                <RadzenDataGridColumn TItem="DataSetModel" Title="Name" Property="DisplayName" Width="15px" />
+                <RadzenDataGridColumn TItem="DataSetModel" Title="Purpose" Property="Purpose" Width="10px" />
+                <RadzenDataGridColumn TItem="DataSetModel" Title="Type" Property="Type" Width="10px" />
                 <RadzenDataGridColumn TItem="DataSetModel" Title="Options" Width="20px">
                     <Template Context="entry">
                         <RadzenButton Text="Open" Click="()=>OpenDataset(entry)" />
