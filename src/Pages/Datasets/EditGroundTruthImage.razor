@@ -16,21 +16,48 @@
     @if (Model is not null)
     {
         <RadzenRow AlignItems="AlignItems.Center">
-            <RadzenColumn Size="12" SizeMD="6">
+            <RadzenColumn Size="12" SizeMD="7">
                 <RadzenStack Orientation="Orientation.Vertical">
                     <RadzenRow>
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
                             <RadzenRow Style="width:100%">
-                                <RadzenColumn SizeMD="9">
-                                    @if (ImageInfo is not null)
-                                    {
-                                        <RadzenText TagName="TagName.H4">Width: @ImageInfo.Width, Height: @ImageInfo.Height</RadzenText>
-                                    }
+                                <RadzenColumn SizeMD="3">
+                                    <RadzenStack Orientation="Orientation.Vertical">
+                                        <RadzenLabel Style="font-size: 12px;" Text="Zoom level:" title="Zoom level" />
+                                        <RadzenSelectBar TValue="int" Size="ButtonSize.Small" @bind-Value="@ImageZoomLevel">
+                                            <Items>
+                                                <RadzenSelectBarItem Value="100" Text="100 " />
+                                                <RadzenSelectBarItem Value="150" Text="150" />
+                                                <RadzenSelectBarItem Value="180" Text="180" />
+                                                <RadzenSelectBarItem Value="200" Text="200" />
+                                                <RadzenSelectBarItem Value="300" Text="300" />
+                                            </Items>
+                                        </RadzenSelectBar>
+                                        @if (ImageInfo is not null)
+                                        {
+                                            <RadzenLabel Style="font-size: 12px;">Width: <b>@ImageInfo.Width</b>, Height: <b>@ImageInfo.Height</b></RadzenLabel>
+                                        }
+                                    </RadzenStack>
+                                </RadzenColumn>
+                                <RadzenColumn SizeMD="4">
+                                    <RadzenStack Orientation="Orientation.Vertical">
+                                        <RadzenLabel Style="font-size: 12px;" Text="Resize image by percentage:" title="Resize image by percentage" />
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenNumeric Style="width:90px" Disabled=@(string.IsNullOrEmpty(Base64Image)) Max="90" Min="20" TValue="int" Value=@ResizePercent /><span>%</span>
+                                            <RadzenButton Disabled=@(string.IsNullOrEmpty(Base64Image)) ButtonStyle=ButtonStyle.Info Click=@Resize Size="ButtonSize.Small" Text="Resize" />
+                                        </RadzenStack>
+                                    </RadzenStack>
                                 </RadzenColumn>
                                 <RadzenColumn SizeMD="3">
+                                    <RadzenCard>
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Upload image</RadzenText>
+                                        <InputFile Style="margin-top:5px;" OnChange="@InputFileChange" />
+                                    </RadzenCard>
+                                </RadzenColumn>
+                                <RadzenColumn SizeMD="2">
                                     <RadzenStack Orientation="Orientation.Horizontal">
-                                        <RadzenNumeric Style="width:90px" Disabled=@(string.IsNullOrEmpty(Base64Image)) Max="90" Min="20" TValue="int" Value=@ResizePercent />
-                                        <RadzenButton Disabled=@(string.IsNullOrEmpty(Base64Image)) ButtonStyle=ButtonStyle.Info Click=@Resize Size="ButtonSize.Small" Text="Resize" />
+                                        <RadzenButton Disabled=@(pageCounter == 0) ButtonStyle=ButtonStyle.Light Click=@Previous Size="ButtonSize.Small" Text="Previous" />
+                                        <RadzenButton Disabled=@(pageSize == 0 || pageCounter == pageSize - 1) ButtonStyle=ButtonStyle.Light Click=@Next Size="ButtonSize.Small" Text="Next" />
                                     </RadzenStack>
                                 </RadzenColumn>
                             </RadzenRow>
@@ -46,7 +73,7 @@
                     </RadzenRow>
                 </RadzenStack>
             </RadzenColumn>
-            <RadzenColumn Size="12" SizeMD="6">
+            <RadzenColumn Size="12" SizeMD="5">
                 <RadzenStack Orientation="Orientation.Vertical">
                     <RadzenRow AlignItems="AlignItems.Center">
                         <RadzenColumn Size="12" SizeMD="4">
@@ -70,22 +97,8 @@
                             </RadzenRow>
                         }
                     }
-                    <h3>Zoom Level:</h3>
-                    <RadzenSelectBar TValue="int" Size="ButtonSize.Small" @bind-Value="@ImageZoomLevel">
-                        <Items>
-                            <RadzenSelectBarItem Value="100" Text="100 " />
-                            <RadzenSelectBarItem Value="150" Text="150" />
-                            <RadzenSelectBarItem Value="180" Text="180" />
-                            <RadzenSelectBarItem Value="200" Text="200" />
-                            <RadzenSelectBarItem Value="300" Text="300" />
-                        </Items>
-                    </RadzenSelectBar>
-                    <RadzenButton Disabled=@(pageCounter == 0) ButtonStyle=ButtonStyle.Light Click=@Previous Size="ButtonSize.Small" Text="Previous" />
-                    <RadzenButton Disabled=@(pageSize == 0 || pageCounter == pageSize - 1) ButtonStyle=ButtonStyle.Light Click=@Next Size="ButtonSize.Small" Text="Next" />
-                    <RadzenCard>
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Upload image</RadzenText>
-                        <InputFile Style="margin-top:5px;" OnChange="@InputFileChange" />
-                    </RadzenCard>
+
+
                     <RadzenButton Click="@AddTag" ButtonStyle=ButtonStyle.Light Size="ButtonSize.Small" Text="Add Tag" />
                     @if (Model.Tags is not null)
                     {

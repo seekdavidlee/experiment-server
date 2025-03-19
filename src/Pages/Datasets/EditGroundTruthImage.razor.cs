@@ -235,7 +235,7 @@ public partial class EditGroundTruthImage
 
             Model.DisplayName = file.Name;
             var tags = Model.Tags is not null ? [.. Model.Tags] : new List<GroundTruthTag>();
-            tags.Add(new GroundTruthTag { Name = nameof(file.ContentType), Value = file.ContentType });
+            tags.Add(new GroundTruthTag { Name = "source_content_type", Value = file.ContentType });
             Model.Tags = [.. tags];
 
             pageSize = base64Images!.Length;
