@@ -91,13 +91,13 @@ public partial class DataSetDashboard
         }
     }
 
-    private async Task CopyAsync(DataSetModel datasetModel)
+    private async Task CloneNewAsync(DataSetModel datasetModel)
     {
         var copyModel = JsonSerializer.Deserialize<DataSetModel>(JsonSerializer.Serialize(datasetModel));
         copyModel!.Id = Guid.Empty;
         copyModel.DisplayName = $"{copyModel.DisplayName} copy";
 
-        bool? result = await DialogService!.OpenAsync<EditDataSetDialog>("Copy DataSet", new Dictionary<string, object>
+        bool? result = await DialogService!.OpenAsync<EditDataSetDialog>("Clone New DataSet", new Dictionary<string, object>
         {
              { "DialogService", DialogService },
              { "Model",  copyModel },

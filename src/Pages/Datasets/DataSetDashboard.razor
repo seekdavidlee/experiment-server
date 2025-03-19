@@ -35,7 +35,7 @@
                     <Template Context="entry">
                         <RadzenButton Text="Open" Click="()=>OpenDataset(entry)" />
                         <RadzenButton Text="Edit" Click="()=>Edit(entry)" />
-                        <RadzenButton Text="Copy" Click="()=>CopyAsync(entry)" />
+                        <RadzenButton Text="Clone New" Click="()=>CloneNewAsync(entry)" />
                         <RadzenButton Click=@(args => DeleteAsync(entry)) Text="Delete" ButtonStyle="ButtonStyle.Danger" />
                     </Template>
                 </RadzenDataGridColumn>
