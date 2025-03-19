@@ -47,6 +47,19 @@ public partial class CopyGroundTruthToDatasetDialog
             return;
         }
 
+        var existing = await Client!.GetGroundTruthImagesAsync(SelectedDataset.Id);
+        if (!existing.Success)
+        {
+            ErrorMessage = existing.ErrorMessage;
+            return;
+        }
+
+        if (existing.Result.Any(x => string.Compare(x.DisplayName, Model!.DisplayName, true) == 0))
+        {
+            ErrorMessage = "An image with the same name already exists in the selected dataset.";
+            return;
+        }
+
         var copy = JsonSerializer.Deserialize<GroundTruthImage>(JsonSerializer.Serialize(Model))!;
         copy.Id = Guid.NewGuid();
 

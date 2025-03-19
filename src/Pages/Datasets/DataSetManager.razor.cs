@@ -45,7 +45,13 @@ public partial class DataSetManager
     private async Task RefreshAsync()
     {
         model.Items.Clear();
-        model.Items.AddRange(await Client!.GetGroundTruthImagesAsync(DatasetId!));
+        var response = await Client!.GetGroundTruthImagesAsync(DatasetId!);
+        if (!response.Success)
+        {
+            ErrorMessage = response.ErrorMessage;
+            return;
+        }
+        model.Items.AddRange(response.Result);
         await dataGrid!.Reload();
     }
 
@@ -84,7 +90,7 @@ public partial class DataSetManager
         {
             CloseDialogOnEsc = true,
             Width = "500px",
-            Height = "300px",
+            Height = "350px",
         });
     }
 

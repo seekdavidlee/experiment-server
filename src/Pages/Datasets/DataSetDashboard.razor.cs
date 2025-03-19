@@ -124,8 +124,13 @@ public partial class DataSetDashboard
             return;
         }
 
-        var groundTruths = await Client!.GetGroundTruthImagesAsync(dataSetModel.Id);
-        foreach (var groundTruth in groundTruths)
+        var groundTruthsRespopnse = await Client!.GetGroundTruthImagesAsync(dataSetModel.Id);
+        if (!groundTruthsRespopnse.Success)
+        {
+            await DialogService!.Alert(groundTruthsRespopnse.ErrorMessage, "Unable to get ground truths");
+            return;
+        }
+        foreach (var groundTruth in groundTruthsRespopnse.Result)
         {
             bool isDirty = false;
 

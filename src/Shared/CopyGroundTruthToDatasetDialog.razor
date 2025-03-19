@@ -13,11 +13,10 @@
         }
     </RadzenRow>
     <RadzenRow>
-        <RadzenColumn>
-            <RadzenDropDown @bind-Value=@SelectedDataset Data=@Datasets TextProperty="DisplayName" />
-        </RadzenColumn>
-        <RadzenColumn>
-            <RadzenButton Click=@(args => SaveAsync()) Text="Copy" ButtonStyle="ButtonStyle.Primary" />
-        </RadzenColumn>
+        <RadzenDropDown Style="width:100%" @bind-Value=@SelectedDataset Data=@Datasets TextProperty="DisplayName" />
+    </RadzenRow>
+    <RadzenRow AlignItems="AlignItems.End">
+        <RadzenButton Click=@(args => SaveAsync()) Text="Copy" ButtonStyle="ButtonStyle.Primary" />
+        <RadzenButton Click=@Cancel Text="Cancel" ButtonStyle="ButtonStyle.Light" />
     </RadzenRow>
 </RadzenStack>

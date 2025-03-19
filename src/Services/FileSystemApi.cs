@@ -202,13 +202,13 @@ public class FileSystemApi
             $"{config.Environment}/experiment-server{suffix}";
     }
 
-    public async Task<List<GroundTruthImage>> GetGroundTruthImagesAsync(Guid datasetId)
+    public async Task<ApiResponse<List<GroundTruthImage>>> GetGroundTruthImagesAsync(Guid datasetId)
     {
         List<GroundTruthImage> images = [];
         try
         {
             var results = await httpClient!.GetFromJsonAsync<string[]>($"{FILE_PATH_PREFIX}/datasets/{datasetId}/");
-            if (results is null || results.Length == 0) return [];
+            if (results is null || results.Length == 0) return new ApiResponse<List<GroundTruthImage>>(true, default, images);
 
             results = results.Where(x => x.EndsWith(".json")).ToArray();
 
@@ -222,19 +222,18 @@ public class FileSystemApi
                 }
             }
 
-            return images;
+            return new ApiResponse<List<GroundTruthImage>>(true, default, images);
         }
         catch (HttpRequestException ex)
         {
             if (ex.StatusCode == HttpStatusCode.NotFound)
             {
-                return [];
+                return new ApiResponse<List<GroundTruthImage>>(true, default, images);
             }
             logger.LogError(ex, "error: failed to get experiment run logs");
+
+            return new ApiResponse<List<GroundTruthImage>>(false, "failed to get experiment run logs", images);
         }
-
-
-        return images;
     }
 
     public async Task<ApiResponse> SaveGroundTruthImageAsync(Guid datasetId, GroundTruthImage groundTruth)
@@ -270,7 +269,7 @@ public class FileSystemApi
             var response = await httpClient!.DeleteAsync($"{FILE_PATH_PREFIX}/datasets/{datasetId}/{groundTruthImage.Id}.jpg");
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogError("error: failed to delete ground truth image: {imagePath}","");
+                logger.LogError("error: failed to delete ground truth image: {imagePath}", "");
             }
 
             response = await httpClient!.DeleteAsync($"{FILE_PATH_PREFIX}/datasets/{datasetId}/{groundTruthImage.Id}.json");
