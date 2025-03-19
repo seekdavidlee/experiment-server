@@ -211,6 +211,7 @@ public partial class EditGroundTruthImage
         {
             // Get the file from the event
             var file = e.File;
+            GroundTruthTag? sourceImageSize = null;
 
             if (file.ContentType == "application/pdf")
             {
@@ -220,10 +221,17 @@ public partial class EditGroundTruthImage
                 {
                     base64Images = pdfImages.Select(x => $"data:image/jpg;base64,{x}").ToArray();
 
+                    var imageInfoResponse = await ImageConversionApi!.GetImageInfo(Convert.FromBase64String(pdfImages[0]));
+                    if (imageInfoResponse.Success)
+                    {
+                        ImageInfo = imageInfoResponse.Result;
+                        sourceImageSize = new GroundTruthTag { Name = "source_image_size", Value = $"width:{ImageInfo!.Width}, height:{ImageInfo.Height}" };
+                    }
                 }
 
                 StateHasChanged();
             }
+
 
             if (file.ContentType == "image/jpg" || file.ContentType == "image/jpeg")
             {
@@ -231,11 +239,23 @@ public partial class EditGroundTruthImage
                 var imageBytes = new byte[file.Size];
                 await stream.ReadAsync(imageBytes);
                 base64Images = [$"data:{file.ContentType};base64,{Convert.ToBase64String(imageBytes)}"];
+
+                var imageInfoResponse = await ImageConversionApi!.GetImageInfo(imageBytes);
+                if (imageInfoResponse.Success)
+                {
+                    ImageInfo = imageInfoResponse.Result;
+                    sourceImageSize = new GroundTruthTag { Name = "source_image_size", Value = $"width:{ImageInfo!.Width}, height:{ImageInfo.Height}" };
+                }
             }
 
             Model.DisplayName = file.Name;
             var tags = Model.Tags is not null ? [.. Model.Tags] : new List<GroundTruthTag>();
             tags.Add(new GroundTruthTag { Name = "source_content_type", Value = file.ContentType });
+            if (sourceImageSize is not null)
+            {
+                tags.Add(sourceImageSize);
+            }
+
             Model.Tags = [.. tags];
 
             pageSize = base64Images!.Length;
