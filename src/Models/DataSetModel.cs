@@ -18,7 +18,8 @@ public enum DataSetPurposes
 {
     Unspecified,
     Training,
-    Validation
+    Validation,
+    Test
 }
 
 public enum DataSetModelTypes
