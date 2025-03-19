@@ -106,11 +106,14 @@
                         {
                             <RadzenCard>
                                 <RadzenRow AlignItems="AlignItems.Center">
-                                    <RadzenColumn Size="12" SizeMD="6">
+                                    <RadzenColumn Size="12" SizeMD="5">
                                         <RadzenTextBox Style="width: 100%;" @bind-Value=@tag.Name />
                                     </RadzenColumn>
                                     <RadzenColumn Size="12" SizeMD="6">
                                         <RadzenTextBox Style="width: 100%;" @bind-Value=@tag.Value />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="1">
+                                        <RadzenButton ButtonStyle="ButtonStyle.Light" Click=@(()=>RemoveTag(tag)) Size="ButtonSize.Small" Icon="delete" />
                                     </RadzenColumn>
                                 </RadzenRow>
                             </RadzenCard>

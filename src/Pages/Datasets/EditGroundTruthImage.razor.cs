@@ -315,4 +315,9 @@ public partial class EditGroundTruthImage
             isImageChanged = true;
         }
     }
+
+    private void RemoveTag(GroundTruthTag tag)
+    {
+        Model!.Tags = Model.Tags!.Where(x => x != tag).ToArray();
+    }
 }
