@@ -111,4 +111,22 @@ public partial class DataSetManager
             }
         }
     }
+
+    private async Task OpenCopyAllToDialog()
+    {
+        await DialogService!.OpenAsync<CopyAllDatasetGroundTruthsToDialog>("Copy Ground Truth", new Dictionary<string, object>
+        {
+             { "DialogService", DialogService },
+             { "Model", DataSetModel! },
+             { "Models", model.Items },
+             { "Client", Client! },
+             { "ExcludeDatasetId", DatasetId },
+        },
+        new DialogOptions
+        {
+            CloseDialogOnEsc = true,
+            Width = "500px",
+            Height = "350px",
+        });
+    }
 }
