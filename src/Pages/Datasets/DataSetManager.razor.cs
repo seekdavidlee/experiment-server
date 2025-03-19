@@ -39,6 +39,15 @@ public partial class DataSetManager
         {
             DataSetModel = (DataSetModel)dataSet;
         }
+        else
+        {
+            DataSetModel = (await Client!.GetDataSetsAsync()).SingleOrDefault(x => x.Id == DatasetId);
+            if (DataSetModel is null)
+            {
+                ErrorMessage = $"Dataset {DatasetId} is not valid.";
+                return;
+            }
+        }
         await RefreshAsync();
     }
 
@@ -52,7 +61,10 @@ public partial class DataSetManager
             return;
         }
         model.Items.AddRange(response.Result);
-        await dataGrid!.Reload();
+        if (dataGrid is not null)
+        {
+            await dataGrid.Reload();
+        }
     }
 
     private void AddNew()

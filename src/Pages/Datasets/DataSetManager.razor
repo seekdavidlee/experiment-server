@@ -3,99 +3,105 @@
 @if (DataSetModel is not null)
 {
     <PageTitle>Ground Truths - @DataSetModel.DisplayName</PageTitle>
-}
-<RadzenStack>
-    @if (ErrorMessage is not null)
-    {
-        <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
-            @ErrorMessage
-        </RadzenAlert>
-    }
-    <RadzenRow>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
-            <RadzenRow Style="width:100%">
-                <RadzenColumn SizeMD="6">
-                    <RadzenButton Click=@(args => AddNew()) Text="New" ButtonStyle="ButtonStyle.Primary" title="Adds a new ground truth to dataset" />
-                    <RadzenButton Click=@(args => RefreshAsync()) Text="Refresh" ButtonStyle="ButtonStyle.Primary" title="Refresh dataset ground truths" />
-                </RadzenColumn>
-                <RadzenColumn SizeMD="5">
-                    <RadzenButton Click=@OpenCopyAllToDialog Text="Copy All To" ButtonStyle="ButtonStyle.Info" title="Copy all ground truths to another dataset" />
-                </RadzenColumn>
-                <RadzenColumn SizeMD="1">
-                    <RadzenButton Click=@Back Text="Datasets" ButtonStyle="ButtonStyle.Light" />
-                </RadzenColumn>
-            </RadzenRow>
-        </RadzenStack>
-    </RadzenRow>
-    <RadzenRow>
-        <RadzenDataGrid @ref="@dataGrid" ColumnWidth="200px" AllowFiltering="true" AllowPaging="true" AllowSorting="true" Data="@model.Items">
-            <HeaderTemplate>
-                <RadzenRow RowGap="0" Style="width:100%">
-                    <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
-                        @if (DataSetModel is not null)
-                        {
-                            <RadzenIcon Icon="gavel" class="rz-mr-1" />
-                            <b>@DataSetModel.DisplayName (@model.Items.Count)</b>
-                        }
-                    </RadzenText>
+    <RadzenStack>
+        @if (ErrorMessage is not null)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+                @ErrorMessage
+            </RadzenAlert>
+        }
+        <RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
+                <RadzenRow Style="width:100%">
+                    <RadzenColumn SizeMD="6">
+                        <RadzenButton Click=@(args => AddNew()) Text="New" ButtonStyle="ButtonStyle.Primary" title="Adds a new ground truth to dataset" />
+                        <RadzenButton Click=@(args => RefreshAsync()) Text="Refresh" ButtonStyle="ButtonStyle.Primary" title="Refresh dataset ground truths" />
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="5">
+                        <RadzenButton Click=@OpenCopyAllToDialog Text="Copy All To" ButtonStyle="ButtonStyle.Info" title="Copy all ground truths to another dataset" />
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="1">
+                        <RadzenButton Click=@Back Text="Datasets" ButtonStyle="ButtonStyle.Light" />
+                    </RadzenColumn>
                 </RadzenRow>
-            </HeaderTemplate>
-            <Columns>
-                <RadzenDataGridColumn TItem="GroundTruthImage" Title="Name" Width="20px">
-                    <Template Context="entry">
-                        @entry.DisplayName
-                    </Template>
-                </RadzenDataGridColumn>
-                @foreach (var field in DataSetModel!.Fields!)
-                {
-                    <RadzenDataGridColumn TItem="GroundTruthImage" Title=@field.Name Width="20px">
+            </RadzenStack>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenDataGrid @ref="@dataGrid" ColumnWidth="200px" AllowFiltering="true" AllowPaging="true" AllowSorting="true" Data="@model.Items">
+                <HeaderTemplate>
+                    <RadzenRow RowGap="0" Style="width:100%">
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                            @if (DataSetModel is not null)
+                            {
+                                <RadzenIcon Icon="gavel" class="rz-mr-1" />
+                                <b>@DataSetModel.DisplayName (@model.Items.Count)</b>
+                            }
+                        </RadzenText>
+                    </RadzenRow>
+                </HeaderTemplate>
+                <Columns>
+                    <RadzenDataGridColumn TItem="GroundTruthImage" Title="Name" Width="20px">
                         <Template Context="entry">
-                            @{
-                                var expectedField = entry.Fields!.SingleOrDefault(x => x.Name == field.Name);
-                                if (expectedField is not null)
-                                {
-                                    <span>@expectedField.Value</span>
+                            @entry.DisplayName
+                        </Template>
+                    </RadzenDataGridColumn>
+                    @foreach (var field in DataSetModel!.Fields!)
+                    {
+                        <RadzenDataGridColumn TItem="GroundTruthImage" Title=@field.Name Width="20px">
+                            <Template Context="entry">
+                                @{
+                                    var expectedField = entry.Fields!.SingleOrDefault(x => x.Name == field.Name);
+                                    if (expectedField is not null)
+                                    {
+                                        <span>@expectedField.Value</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: red">Missing!</span>
+                                    }
                                 }
-                                else
-                                {
-                                    <span style="color: red">Missing!</span>
-                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                    }
+                    <RadzenDataGridColumn TItem="GroundTruthImage" Title="Tags" Width="30px">
+                        <Template Context="entry">
+                            @if (entry.Tags is not null)
+                            {
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <td style="width:60px"><b>Name</b></td>
+                                            <td style="width:100px"><b>Value</b></td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var tag in entry.Tags)
+                                        {
+                                            <tr>
+                                                <td>@tag.Name</td>
+                                                <td>@tag.Value</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
                             }
                         </Template>
                     </RadzenDataGridColumn>
-                }
-                <RadzenDataGridColumn TItem="GroundTruthImage" Title="Tags" Width="30px">
-                    <Template Context="entry">
-                        @if (entry.Tags is not null)
-                        {
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <td style="width:60px"><b>Name</b></td>
-                                        <td style="width:100px"><b>Value</b></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var tag in entry.Tags)
-                                    {
-                                        <tr>
-                                            <td>@tag.Name</td>
-                                            <td>@tag.Value</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="GroundTruthImage" Title="" Width="20px">
-                    <Template Context="entry">
-                        <RadzenButton Click=@(args => Edit(entry)) Text="View" ButtonStyle="ButtonStyle.Primary" />
-                        <RadzenButton Click=@(args => CopyTo(entry)) Text="Copy" ButtonStyle="ButtonStyle.Primary" />
-                        <RadzenButton Click=@(args => DeleteAsync(entry)) Text="Delete" ButtonStyle="ButtonStyle.Danger" />
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
-    </RadzenRow>
-</RadzenStack>
+                    <RadzenDataGridColumn TItem="GroundTruthImage" Title="" Width="20px">
+                        <Template Context="entry">
+                            <RadzenButton Click=@(args => Edit(entry)) Text="View" ButtonStyle="ButtonStyle.Primary" />
+                            <RadzenButton Click=@(args => CopyTo(entry)) Text="Copy" ButtonStyle="ButtonStyle.Primary" />
+                            <RadzenButton Click=@(args => DeleteAsync(entry)) Text="Delete" ButtonStyle="ButtonStyle.Danger" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenRow>
+    </RadzenStack>
+}
+else
+{
+    <RadzenAlert AlertStyle="AlertStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter">
+        Loading dataset...
+    </RadzenAlert>
+}
