@@ -21,6 +21,11 @@ public class CompareTableCell
     /// Gets or sets when we have more than one value to display in the cell.
     /// </summary>
     public string[]? Values { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether to apply newlines as line breaks.
+    /// </summary>
+    public bool? FormatText { get; set; }
 }
 
 public class CompareTableColumn

@@ -54,7 +54,14 @@
                                 }
                                 else
                                 {
-                                    @cell.Value
+                                    if (cell.FormatText == true)
+                                    {
+                                        <p>@((MarkupString)cell.Value!.Replace("\n", "<br />"))</p>
+                                    }
+                                    else
+                                    {
+                                        @cell.Value
+                                    }
                                 }
                             </td>
                         }

@@ -97,8 +97,9 @@ public partial class ExperimentRunDashboard
             }
         }
 
+        var runsParam = string.Join(",", runs.Select(x => x.Id));
         UserSession!.Items[nameof(ExperimentsComparison)] = runs;
-        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/comparisons");
+        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/comparisons?runs={runsParam}");
     }
 
     private void Back()

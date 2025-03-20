@@ -17,6 +17,11 @@
                 </RadzenTabsItem>
                 <RadzenTabsItem Text="Accuracy">
                     <RadzenRow>
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                           
+                        </RadzenStack>
+                    </RadzenRow>
+                    <RadzenRow>
                         <TableView TableModel="@FieldsAccuracy" />
                         @foreach (var failure in PerRunFailureComparisions)
                         {

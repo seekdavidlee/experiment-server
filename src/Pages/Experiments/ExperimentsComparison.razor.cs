@@ -4,8 +4,7 @@ using ExperimentServer.Services;
 using FastMember;
 using MathNet.Numerics.Statistics;
 using Microsoft.AspNetCore.Components;
-using Radzen;
-using System;
+using System.Text;
 
 namespace ExperimentServer.Pages.Experiments;
 
@@ -16,6 +15,9 @@ public partial class ExperimentsComparison
 
     [Parameter]
     public Guid ExperimentId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "runs")]
+    public string? Runs { get; set; }
 
     [Inject]
     private UserSession? UserSession { get; set; }
@@ -36,13 +38,38 @@ public partial class ExperimentsComparison
 
     protected override async Task OnInitializedAsync()
     {
+        List<ExperimentRun> runs;
         if (UserSession!.Items.TryGetValue(nameof(ExperimentsComparison), out var experimentRunsObj))
         {
-            var runs = (List<ExperimentRun>)experimentRunsObj;
-
-            InitInputs(runs);
-            await InitAsync(runs);
+            runs = (List<ExperimentRun>)experimentRunsObj;
         }
+        else
+        {
+            if (string.IsNullOrEmpty(Runs))
+            {
+                Logger!.LogError("no runs provided");
+                NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs");
+                return;
+            }
+
+            runs = [];
+            var runIds = Runs.Split(',').Select(x => Guid.Parse(x)).ToList();
+            foreach (var runId in runIds)
+            {
+                var response = await Client!.GetExperimentRunAsync(ProjectId, ExperimentId, runId);
+                if (response.Success)
+                {
+                    runs.Add(response.Result!);
+                }
+                else
+                {
+                    Logger!.LogError("unable to get experiment run: {runId}, error: {error}", runId, response.ErrorMessage);
+                }
+            }
+        }
+
+        InitInputs(runs);
+        await InitAsync(runs);
     }
 
     private void InitInputs(List<ExperimentRun> runs)
@@ -70,7 +97,11 @@ public partial class ExperimentsComparison
                     rows.Add(p, row);
                 }
 
-                row.Cells!.Add(new CompareTableCell { Value = accessor[experimentRun, p].ToString() });
+                row.Cells!.Add(new CompareTableCell
+                {
+                    Value = accessor[experimentRun, p].ToString(),
+                    FormatText = p == nameof(ExperimentRun.SystemPrompt) || p == nameof(ExperimentRun.UserPrompt)
+                });
             }
         }
 
