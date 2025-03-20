@@ -7,12 +7,27 @@
         </RadzenStack>
     </RadzenRow>
     <RadzenRow>
-        <TableView TableModel="@Inputs" />
-        <TableView TableModel="@Outputs" />
-        <TableView TableModel="@FieldsAccuracy" />
-        @foreach (var failure in PerRunFailureComparisions)
-        {
-            <TableView TableModel="@failure" />
-        }
+        <RadzenTabs RenderMode="TabRenderMode.Client">
+            <Tabs>
+                <RadzenTabsItem Text="Inputs/Outputs">
+                    <RadzenRow>
+                        <TableView TableModel="@Inputs" />
+                        <TableView TableModel="@Outputs" />
+                    </RadzenRow>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Accuracy">
+                    <RadzenRow>
+                        <TableView TableModel="@FieldsAccuracy" />
+                        @foreach (var failure in PerRunFailureComparisions)
+                        {
+                            <TableView TableModel="@failure" />
+                        }
+                    </RadzenRow>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
     </RadzenRow>
 </RadzenStack>
+
+
+

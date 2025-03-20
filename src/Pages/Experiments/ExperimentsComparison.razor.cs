@@ -2,6 +2,7 @@
 using ExperimentServer.Models;
 using ExperimentServer.Services;
 using FastMember;
+using MathNet.Numerics.Statistics;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using System;
@@ -99,6 +100,7 @@ public partial class ExperimentsComparison
         outputRows.Add("AvgInferenceTime", new CompareTableRow { Name = "Avg Inference (secs)", Cells = [] });
         outputRows.Add("MinInferenceTime", new CompareTableRow { Name = "Min Inference (secs)", Cells = [] });
         outputRows.Add("MaxInferenceTime", new CompareTableRow { Name = "Max Inference (secs)", Cells = [] });
+        outputRows.Add("StdInferenceTime", new CompareTableRow { Name = "Std Deviation Inference", Cells = [] });
         outputRows.Add("TotalRunTime", new CompareTableRow { Name = "Total Run Time", Cells = [] });
 
         List<(string, Guid)> fieldAccuracyColNames = [];
@@ -228,6 +230,12 @@ public partial class ExperimentsComparison
 
             var maxInferenceTime = TimeSpan.FromMilliseconds(inferenceTimes.Max());
             outputRows["MaxInferenceTime"].Cells!.Add(new CompareTableCell { Value = String.Format("{0:F2}", maxInferenceTime.TotalSeconds) });
+
+            double stdInference = Statistics.StandardDeviation(inferenceTimes);
+            var stdInferenceTime = TimeSpan.FromMilliseconds(stdInference);
+            double stdInferenceTimePercentage = stdInference / Statistics.Mean(inferenceTimes);
+
+            outputRows["StdInferenceTime"].Cells!.Add(new CompareTableCell { Value = $"{stdInferenceTime.TotalSeconds:F2} secs ({stdInferenceTimePercentage:P2})" });
 
             int totalFieldsCorrect = 0;
             int totalFields = 0;
