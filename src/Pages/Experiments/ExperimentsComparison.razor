@@ -7,11 +7,12 @@
         </RadzenStack>
     </RadzenRow>
     <RadzenRow>
-        <TableView Title="Inputs" TableModel="@Inputs" />
-        <TableView Title="Fields Accuracy" TableModel="@FieldsAccuracy" />
+        <TableView TableModel="@Inputs" />
+        <TableView TableModel="@Outputs" />
+        <TableView TableModel="@FieldsAccuracy" />
         @foreach (var failure in PerRunFailureComparisions)
         {
-            <TableView Title=@failure.Title TableModel="@failure" />
+            <TableView TableModel="@failure" />
         }
     </RadzenRow>
 </RadzenStack>

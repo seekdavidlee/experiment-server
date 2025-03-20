@@ -1,5 +1,8 @@
 ﻿<div>
-    <h3>@Title</h3>
+    @if (TableModel is not null && !string.IsNullOrEmpty(TableModel.Title))
+    {
+        <h3>@TableModel.Title</h3>
+    }
     <table style="border: 3px solid black; border-collapse: collapse;">
         <thead>
             <tr>

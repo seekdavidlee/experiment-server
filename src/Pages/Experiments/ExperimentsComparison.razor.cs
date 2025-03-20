@@ -3,6 +3,8 @@ using ExperimentServer.Models;
 using ExperimentServer.Services;
 using FastMember;
 using Microsoft.AspNetCore.Components;
+using Radzen;
+using System;
 
 namespace ExperimentServer.Pages.Experiments;
 
@@ -76,16 +78,26 @@ public partial class ExperimentsComparison
 
     private async Task InitAsync(List<ExperimentRun> runs)
     {
-        //Outputs = new CompareTableModel
-        //{
-        //    Title = "Outputs",
-        //    ColumnNames = [new CompareTableColumn
-        //    {
-        //        Name = $"Total {nameof(ExperimentRunResult.PromptTokens)}"  }, new CompareTableColumn { Name = $"Total {nameof(ExperimentRunResult.CompletionTokens)}" }],
-        //    Rows = []
-        //};
+        Outputs = new CompareTableModel
+        {
+            Title = "Outputs",
+            ColumnNames = runs.Select(x => new CompareTableColumn
+            {
+                Name = x.GetIdOrDescription(),
+                HyperLink = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{x.Id}"
+            }).ToArray(),
+            Rows = []
+        };
 
-        Dictionary<string, int> outputRows = [];
+        Dictionary<string, CompareTableRow> outputRows = [];
+        outputRows.Add(nameof(ExperimentRunResult.PromptTokens), new CompareTableRow { Name = $"Total {nameof(ExperimentRunResult.PromptTokens)}", Cells = [] });
+        outputRows.Add(nameof(ExperimentRunResult.CompletionTokens), new CompareTableRow { Name = $"Total {nameof(ExperimentRunResult.CompletionTokens)}", Cells = [] });
+        outputRows.Add($"Min{nameof(ExperimentRunResult.PromptTokens)}", new CompareTableRow { Name = $"Min {nameof(ExperimentRunResult.PromptTokens)}", Cells = [] });
+        outputRows.Add($"Max{nameof(ExperimentRunResult.PromptTokens)}", new CompareTableRow { Name = $"Max {nameof(ExperimentRunResult.PromptTokens)}", Cells = [] });
+        outputRows.Add($"Min{nameof(ExperimentRunResult.CompletionTokens)}", new CompareTableRow { Name = $"Min {nameof(ExperimentRunResult.CompletionTokens)}", Cells = [] });
+        outputRows.Add($"Max{nameof(ExperimentRunResult.CompletionTokens)}", new CompareTableRow { Name = $"Max {nameof(ExperimentRunResult.CompletionTokens)}", Cells = [] });
+        outputRows.Add("TotalRunTime", new CompareTableRow { Name = "Total Run Time", Cells = [] });
+
 
         List<(string, Guid)> fieldAccuracyColNames = [];
         Evaluation eval = new();
@@ -122,6 +134,16 @@ public partial class ExperimentsComparison
                 return;
             }
 
+            outputRows[nameof(ExperimentRunResult.PromptTokens)].Cells!.Add(new CompareTableCell { Value = results.Select(x => x.PromptTokens).Sum().ToString() });
+            outputRows[nameof(ExperimentRunResult.CompletionTokens)].Cells!.Add(new CompareTableCell { Value = results.Select(x => x.CompletionTokens).Sum().ToString() });
+            outputRows[$"Min{nameof(ExperimentRunResult.PromptTokens)}"].Cells!.Add(new CompareTableCell { Value = results.Select(x => x.PromptTokens).Min().ToString() });
+            outputRows[$"Max{nameof(ExperimentRunResult.PromptTokens)}"].Cells!.Add(new CompareTableCell { Value = results.Select(x => x.PromptTokens).Max().ToString() });
+            outputRows[$"Min{nameof(ExperimentRunResult.CompletionTokens)}"].Cells!.Add(new CompareTableCell { Value = results.Select(x => x.CompletionTokens).Min().ToString() });
+            outputRows[$"Max{nameof(ExperimentRunResult.CompletionTokens)}"].Cells!.Add(new CompareTableCell { Value = results.Select(x => x.CompletionTokens).Max().ToString() });
+
+            var ts = (experimentRun.End!.Value - experimentRun.Start!.Value);
+            outputRows["TotalRunTime"].Cells!.Add(new CompareTableCell { Value = string.Format("{0:%m} minutes and {0:%s} seconds", ts) });
+
             foreach (var res in results)
             {
                 var metric = metrics.SingleOrDefault(x => x.ResultId == res.Id);
@@ -144,8 +166,6 @@ public partial class ExperimentsComparison
                     Logger!.LogError("unable to get ground truth json for {imagePath}", imagePath);
                     return;
                 }
-
-                //res.CompletionTokens
 
                 foreach (var assertion in eval.GetAssertions(groundTruthResponse.Result!, res.Text!))
                 {
@@ -192,6 +212,8 @@ public partial class ExperimentsComparison
                 }
             }
 
+            int totalFieldsCorrect = 0;
+            int totalFields = 0;
             foreach (var field in fields.Values)
             {
                 if (!fieldAccuracyRows.TryGetValue(field.Name!, out var fieldAccuracyRow))
@@ -200,7 +222,20 @@ public partial class ExperimentsComparison
                     fieldAccuracyRows.Add(field.Name!, fieldAccuracyRow);
                 }
                 decimal accuracy = field.Total == 0 ? 0 : (decimal)field.Correct / field.Total;
+                totalFieldsCorrect += field.Correct;
+                totalFields += field.Total;
                 fieldAccuracyRow.Cells!.Add(new CompareTableCell { Value = String.Format("{0:P3}", accuracy) });
+            }
+            decimal totalAccuracy = totalFields == 0 ? 0 : (decimal)totalFieldsCorrect / totalFields;
+            var overallCell = new CompareTableCell { Value = String.Format("{0:P3}", totalAccuracy) };
+            if (!fieldAccuracyRows.TryGetValue("OVERALL", out var overallFieldAccuracyRow))
+            {
+                overallFieldAccuracyRow = new CompareTableRow { Name = "OVERALL", Cells = [overallCell] };
+                fieldAccuracyRows.Add("OVERALL", overallFieldAccuracyRow);
+            }
+            else
+            {
+                overallFieldAccuracyRow.Cells!.Add(overallCell);
             }
 
             if (perRunFailureComparision.Rows!.Count != 0)
@@ -215,8 +250,11 @@ public partial class ExperimentsComparison
             }
         }
 
+        Outputs.Rows!.AddRange(outputRows.Values);
+
         FieldsAccuracy = new CompareTableModel
         {
+            Title = "Fields Accuracy",
             ColumnNames = [.. fieldAccuracyColNames.Select(x => new CompareTableColumn
             {
                 Name = x.Item1,
