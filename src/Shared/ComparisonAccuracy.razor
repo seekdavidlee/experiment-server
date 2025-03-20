@@ -1,0 +1,12 @@
+﻿<RadzenRow>
+    <RadzenStack Orientation="Orientation.Horizontal">
+
+    </RadzenStack>
+</RadzenRow>
+<RadzenRow>
+    <TableView TableModel="@FieldsAccuracy" />
+    @foreach (var failure in PerRunFailureComparisions)
+    {
+        <TableView TableModel="@failure" />
+    }
+</RadzenRow>

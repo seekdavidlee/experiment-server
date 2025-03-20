@@ -11,23 +11,17 @@
             <Tabs>
                 <RadzenTabsItem Text="Inputs/Outputs">
                     <RadzenRow>
-                        <TableView TableModel="@Inputs" />
-                        <TableView TableModel="@Outputs" />
+                        @if (experimentRuns is not null)
+                        {
+                            <ComparisonInputsAndOutputs ExperimentId=@ExperimentId ProjectId=@ProjectId Runs="@experimentRuns" />
+                        }
                     </RadzenRow>
                 </RadzenTabsItem>
                 <RadzenTabsItem Text="Accuracy">
-                    <RadzenRow>
-                        <RadzenStack Orientation="Orientation.Horizontal">
-                           
-                        </RadzenStack>
-                    </RadzenRow>
-                    <RadzenRow>
-                        <TableView TableModel="@FieldsAccuracy" />
-                        @foreach (var failure in PerRunFailureComparisions)
-                        {
-                            <TableView TableModel="@failure" />
-                        }
-                    </RadzenRow>
+                    @if (experimentRuns is not null)
+                    {
+                        <ComparisonAccuracy ExperimentId=@ExperimentId ProjectId=@ProjectId Runs="@experimentRuns" />
+                    }
                 </RadzenTabsItem>
             </Tabs>
         </RadzenTabs>
