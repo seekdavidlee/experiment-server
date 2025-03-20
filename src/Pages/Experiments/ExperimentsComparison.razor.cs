@@ -96,8 +96,10 @@ public partial class ExperimentsComparison
         outputRows.Add($"Max{nameof(ExperimentRunResult.PromptTokens)}", new CompareTableRow { Name = $"Max {nameof(ExperimentRunResult.PromptTokens)}", Cells = [] });
         outputRows.Add($"Min{nameof(ExperimentRunResult.CompletionTokens)}", new CompareTableRow { Name = $"Min {nameof(ExperimentRunResult.CompletionTokens)}", Cells = [] });
         outputRows.Add($"Max{nameof(ExperimentRunResult.CompletionTokens)}", new CompareTableRow { Name = $"Max {nameof(ExperimentRunResult.CompletionTokens)}", Cells = [] });
+        outputRows.Add("AvgInferenceTime", new CompareTableRow { Name = "Avg Inference (secs)", Cells = [] });
+        outputRows.Add("MinInferenceTime", new CompareTableRow { Name = "Min Inference (secs)", Cells = [] });
+        outputRows.Add("MaxInferenceTime", new CompareTableRow { Name = "Max Inference (secs)", Cells = [] });
         outputRows.Add("TotalRunTime", new CompareTableRow { Name = "Total Run Time", Cells = [] });
-
 
         List<(string, Guid)> fieldAccuracyColNames = [];
         Evaluation eval = new();
@@ -106,7 +108,7 @@ public partial class ExperimentsComparison
         {
             CompareTableModel perRunFailureComparision = new()
             {
-                Title = $"{experimentRun.GetIdOrDescription()} failures",
+                Title = $"{experimentRun.GetIdOrDescription()} - Field level failures",
                 Rows = [],
                 ColumnNames = [
                     new CompareTableColumn { Name = "Field" },
@@ -144,6 +146,7 @@ public partial class ExperimentsComparison
             var ts = (experimentRun.End!.Value - experimentRun.Start!.Value);
             outputRows["TotalRunTime"].Cells!.Add(new CompareTableCell { Value = string.Format("{0:%m} minutes and {0:%s} seconds", ts) });
 
+            List<double> inferenceTimes = [];
             foreach (var res in results)
             {
                 var metric = metrics.SingleOrDefault(x => x.ResultId == res.Id);
@@ -157,6 +160,11 @@ public partial class ExperimentsComparison
                 {
                     Logger!.LogError("unable to get image file path");
                     return;
+                }
+
+                if (metric.Name == "inference_time")
+                {
+                    inferenceTimes.Add(metric.Value!.Value);
                 }
 
                 var imagePath = imagePathObj.Replace(".jpg", ".json");
@@ -211,6 +219,15 @@ public partial class ExperimentsComparison
                     }
                 }
             }
+
+            var avgInferenceTime = TimeSpan.FromMilliseconds(inferenceTimes.Average());
+            outputRows["AvgInferenceTime"].Cells!.Add(new CompareTableCell { Value = String.Format("{0:F2}", avgInferenceTime.TotalSeconds) });
+
+            var minInferenceTime = TimeSpan.FromMilliseconds(inferenceTimes.Min());
+            outputRows["MinInferenceTime"].Cells!.Add(new CompareTableCell { Value = String.Format("{0:F2}", minInferenceTime.TotalSeconds) });
+
+            var maxInferenceTime = TimeSpan.FromMilliseconds(inferenceTimes.Max());
+            outputRows["MaxInferenceTime"].Cells!.Add(new CompareTableCell { Value = String.Format("{0:F2}", maxInferenceTime.TotalSeconds) });
 
             int totalFieldsCorrect = 0;
             int totalFields = 0;
