@@ -1,0 +1,22 @@
+﻿<RadzenStack Orientation="Orientation.Vertical" Style="width:100%">
+    @if (ErrorMessage is not null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+            @ErrorMessage
+        </RadzenAlert>
+    }
+    <RadzenRow>
+        @if (Model is not null)
+        {
+            var text = $"Select a Dataset copy '{Model.DisplayName}' to:";
+            <RadzenLabel Text=@text />
+        }
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenDropDown Style="width:100%" @bind-Value=@SelectedDataset Data=@Datasets TextProperty="DisplayName" />
+    </RadzenRow>
+    <RadzenRow AlignItems="AlignItems.End">
+        <RadzenButton Click=@(args => SaveAsync()) Text="Copy" ButtonStyle="ButtonStyle.Primary" />
+        <RadzenButton Click=@Cancel Text="Cancel" ButtonStyle="ButtonStyle.Light" />
+    </RadzenRow>
+</RadzenStack>

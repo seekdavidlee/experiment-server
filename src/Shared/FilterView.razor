@@ -1,0 +1,23 @@
+﻿@if (Value is not null)
+{
+    <RadzenCard>
+        @if (IsEditMode)
+        {
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenTextBox Style="width:100px" @bind-Value=@Value.Tag.Name />
+                <RadzenDropDown Style="width:100px" Data=@comparisons @bind-Value=@selectedComparison />
+                <RadzenTextBox Style="width:100px" @bind-Value=@Value.Tag.Value />
+                <RadzenButton Click=@Save Icon="save" title="save" />
+                <RadzenButton Click=@Close Icon="close" title="close" />
+                <RadzenButton Click=@Delete Icon="delete" title="delete" />
+            </RadzenStack>
+        }
+        else
+        {
+            var sign = Value.Comprison == GroundTruthTagComprisons.Equal ? "==" : "!=";
+            <RadzenRow @onclick=@Open>
+                <span>@Value.Tag.Name @sign @Value.Tag.Value</span>
+            </RadzenRow>
+        }
+    </RadzenCard>
+}

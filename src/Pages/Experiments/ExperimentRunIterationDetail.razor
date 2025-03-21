@@ -1,0 +1,100 @@
+﻿@page "/projects/{ProjectId:guid}/experiments/{ExperimentId:guid}/runs/{RunId:guid}/detail"
+
+<RadzenStack Orientation="Orientation.Vertical">
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn>
+            @{
+                var path = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{RunId}";
+                <RadzenLink Path=@path Text="Back" />
+            }
+
+            @if (groundTruth is not null)
+            {
+                <h3>@groundTruth.DisplayName</h3>
+            }
+
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="8">
+            @if (!string.IsNullOrEmpty(Base64Image))
+            {
+                <div style="width:100%;height:500px; overflow:scroll;text-align:right;">
+                    <img style="height:@ImageZoomLevel%; width:auto;" src=@Base64Image />
+                </div>
+            }
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenStack Orientation="Orientation.Vertical">
+                <h3>Zoom Level:</h3>
+                <RadzenSelectBar TValue="int" Size="ButtonSize.Small" @bind-Value="@ImageZoomLevel">
+                    <Items>
+                        <RadzenSelectBarItem Value="100" Text="100 " />
+                        <RadzenSelectBarItem Value="150" Text="150" />
+                        <RadzenSelectBarItem Value="180" Text="180" />
+                        <RadzenSelectBarItem Value="200" Text="200" />
+                        <RadzenSelectBarItem Value="300" Text="300" />
+                    </Items>
+                </RadzenSelectBar>
+                @if (experimentRunResult is not null)
+                {
+                    <div>
+                        <h3>Raw Text:</h3>
+                        <span>@experimentRunResult.Text</span>
+                    </div>
+                }
+
+                @if (assertions is not null)
+                {
+                    <div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td style="width:120px"><h3>Field</h3> </td>
+                                    <td style="width:180px"><h3>Expected</h3></td>
+                                    <td style="width:180px"><h3>Actual</h3></td>
+                                    <td style="width:300px"><h3>Message</h3></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var assertion in assertions)
+                                {
+                                    var color = assertion.Success ? "green" : "red";
+                                    <tr>
+                                        <td style="color:@color">@assertion.Field</td>
+                                        <td>@assertion.Expected</td>
+                                        <td>@assertion.Actual</td>
+                                        <td>@assertion.Message</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                @if (groundTruth is not null && groundTruth.Tags is not null)
+                {
+                    <div>
+                        <h3>Ground Truth Tags:</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td style="width:120px"><h3>Key</h3> </td>
+                                    <td style="width:120px"><h3>Value</h3></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tag in groundTruth.Tags)
+                                {
+                                    <tr>
+                                        <td>@tag.Name</td>
+                                        <td>@tag.Value</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenStack>

@@ -1,0 +1,17 @@
+﻿@using ExperimentServer.Shared
+@inherits LayoutComponentBase
+
+<RadzenLayout>
+    <ErrorBoundary>
+        <ChildContent>
+            <Header />
+            <RadzenBody>
+                @Body
+            </RadzenBody>
+        </ChildContent>
+        <ErrorContent Context="ex">
+            <SystemError Exception="ex" />
+        </ErrorContent>
+    </ErrorBoundary>
+</RadzenLayout>
+<RadzenComponents @rendermode="RenderMode.InteractiveAuto" />

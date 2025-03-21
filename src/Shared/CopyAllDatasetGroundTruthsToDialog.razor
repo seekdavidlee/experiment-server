@@ -1,0 +1,35 @@
+﻿<RadzenStack Orientation="Orientation.Vertical" Style="width:100%">
+    @if (ErrorMessage is not null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+            @ErrorMessage
+        </RadzenAlert>
+    }
+    @if (ShowResults)
+    {
+        <RadzenRow>
+            <RadzenLabel>Copied: @CopiedCount, Skipped: @SkippedCount, Errors: @ErrorCount</RadzenLabel>
+        </RadzenRow>
+    }
+    else
+    {
+        <RadzenRow>
+            @if (Model is not null)
+            {
+                var text = $"Copy all ground truths in '{Model.DisplayName}' dataset to:";
+                <RadzenLabel Text=@text />
+            }
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenDropDown Style="width:100%" @bind-Value=@SelectedDataset Data=@Datasets TextProperty="DisplayName" />
+        </RadzenRow>
+        <RadzenRow AlignItems="AlignItems.End">
+            <RadzenButton Click=@(args => StartCopyAsync()) Text="Copy" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton Click=@Cancel Text="Cancel" ButtonStyle="ButtonStyle.Light" />
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenProgressBar @bind-Value="@Progress" />
+        </RadzenRow>
+    }
+
+</RadzenStack>
