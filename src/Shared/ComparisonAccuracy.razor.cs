@@ -1,8 +1,8 @@
 ﻿
 using ExperimentServer.Models;
-using ExperimentServer.Pages.Experiments;
 using ExperimentServer.Services;
 using Microsoft.AspNetCore.Components;
+using System.Text;
 
 namespace ExperimentServer.Shared;
 
@@ -25,6 +25,7 @@ public partial class ComparisonAccuracy
 
     private CompareTableModel? FieldsAccuracy;
     private readonly List<CompareTableModel> PerRunFailureComparisions = [];
+    private readonly List<ExpRunModel> ExpRuns = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -35,7 +36,7 @@ public partial class ComparisonAccuracy
     {
         List<(string, Guid)> fieldAccuracyColNames = [];
         Evaluation eval = new();
-        Dictionary<string, CompareTableRow> fieldAccuracyRows = [];
+
         foreach (var experimentRun in runs)
         {
             CompareTableModel perRunFailureComparision = new()
@@ -50,69 +51,53 @@ public partial class ComparisonAccuracy
                     new CompareTableColumn { Name = "Tags" }
                 ]
             };
+            PerRunFailureComparisions.Add(perRunFailureComparision);
 
             fieldAccuracyColNames.Add((experimentRun.GetIdOrDescription(), experimentRun.Id));
-            Dictionary<string, FieldAccuracy> fields = [];
 
-            var results = await Client!.GetExperimentRunResultsAsync(ProjectId, ExperimentId, experimentRun.Id);
-            if (results is null)
+            var item = new ExpRunModel(Client!, ProjectId, ExperimentId, experimentRun, Logger!);
+            await item.InitAsync(eval);
+            ExpRuns.Add(item);
+        }
+
+        FieldsAccuracy = new CompareTableModel
+        {
+            Title = "Fields Accuracy",
+            ColumnNames = [.. fieldAccuracyColNames.Select(x => new CompareTableColumn
             {
-                Logger!.LogError("unable to get experiment run");
-                return;
-            }
+                Name = x.Item1,
+                HyperLink = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{x.Item2}"
+            })],
+            Rows = []
+        };
 
-            var metrics = await Client!.GetExperimentRunMetricsAsync(ProjectId, ExperimentId, experimentRun.Id);
-            if (metrics is null)
+        Refresh();
+        RefreshFailures();
+    }
+
+    private readonly List<GroundTruthTagModel> Filters = [];
+
+    private void RefreshFailures()
+    {
+        for (var i = 0; i < PerRunFailureComparisions.Count; i++)
+        {
+            var perRunFailureComparision = PerRunFailureComparisions[i];
+            var item = ExpRuns[i];
+
+            perRunFailureComparision.Rows!.Clear();
+
+            foreach (var res in item.Results)
             {
-                Logger!.LogError("unable to get experiment run metrics");
-                return;
-            }
-
-            List<double> inferenceTimes = [];
-            foreach (var res in results)
-            {
-                var metric = metrics.SingleOrDefault(x => x.ResultId == res.Id);
-                if (metric is null)
+                if (ShouldFilter(res))
                 {
-                    Logger!.LogError("unable to get metric for result");
-                    return;
+                    continue;
                 }
 
-                if (!metric.Meta!.TryGetValue("image_file_path", out var imagePathObj))
+                foreach (var assertion in res.Assertions)
                 {
-                    Logger!.LogError("unable to get image file path");
-                    return;
-                }
-
-                if (metric.Name == "inference_time")
-                {
-                    inferenceTimes.Add(metric.Value!.Value);
-                }
-
-                var imagePath = imagePathObj.Replace(".jpg", ".json");
-                var groundTruthResponse = await Client.GetJsonAsync<GroundTruthImage>(imagePath);
-                if (!groundTruthResponse.Success)
-                {
-                    Logger!.LogError("unable to get ground truth json for {imagePath}", imagePath);
-                    return;
-                }
-
-                foreach (var assertion in eval.GetAssertions(groundTruthResponse.Result!, res.Text!))
-                {
-                    if (!fields.TryGetValue(assertion.Field, out var fieldAcc))
+                    if (!assertion.Success)
                     {
-                        fieldAcc = new FieldAccuracy { Name = assertion.Field };
-                        fields.Add(assertion.Field, fieldAcc);
-                    }
-
-                    fieldAcc.Total++;
-                    if (assertion.Success)
-                    {
-                        fieldAcc.Correct++;
-                    }
-                    else
-                    {
-                        string key = $"{groundTruthResponse.Result!.DisplayName}.{assertion.Field}";
+                        string key = $"{res.GroundTruth.DisplayName}.{assertion.Field}";
                         var existingPerFieldFailureComparisionRow = perRunFailureComparision.Rows!.SingleOrDefault(x => x.Name == key);
                         if (existingPerFieldFailureComparisionRow is null)
                         {
@@ -121,7 +106,7 @@ public partial class ComparisonAccuracy
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = assertion.Expected });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Actual ?? ""] });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Message ?? ""] });
-                            newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = groundTruthResponse.Result.Tags.GetString() });
+                            newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = res.GroundTruth.Tags.GetString() });
                             perRunFailureComparision.Rows!.Add(newPerFieldFailureComparisionRow);
                         }
                         else
@@ -138,6 +123,60 @@ public partial class ComparisonAccuracy
                                 messageCell.Values = [.. messageCell.Values!, assertion.Message];
                             }
                         }
+                    }
+                }
+            }
+
+            if (perRunFailureComparision.Rows!.Count != 0)
+            {
+                // cleanup row name
+                foreach (var row in perRunFailureComparision.Rows!)
+                {
+                    row.Name = row.Name![..row.Name!.LastIndexOf('.')];
+                }
+            }
+        }
+    }
+
+    private bool ShouldFilter(ExperimentRunResultModel res)
+    {
+        if (Filters.Count > 0 &&
+            res.GroundTruth.Tags is not null &&
+            !Filters.All(x => res.GroundTruth.Tags.Any(y => x.Tag.Name == y.Name &&
+                (x.Comprison == GroundTruthTagComprisons.Equal ? x.Tag.Value == y.Value : x.Tag.Value != y.Value))))
+        {
+            Logger!.LogInformation("skipping result due to filter");
+            return true;
+        }
+        return false;
+    }
+
+    private void Refresh()
+    {
+        Dictionary<string, CompareTableRow> fieldAccuracyRows = [];
+
+        foreach (var item in ExpRuns)
+        {
+            Dictionary<string, FieldAccuracy> fields = [];
+            foreach (var res in item.Results)
+            {
+                if (ShouldFilter(res))
+                {
+                    continue;
+                }
+
+                foreach (var assertion in res.Assertions)
+                {
+                    if (!fields.TryGetValue(assertion.Field, out var fieldAcc))
+                    {
+                        fieldAcc = new FieldAccuracy { Name = assertion.Field };
+                        fields.Add(assertion.Field, fieldAcc);
+                    }
+
+                    fieldAcc.Total++;
+                    if (assertion.Success)
+                    {
+                        fieldAcc.Correct++;
                     }
                 }
             }
@@ -167,29 +206,33 @@ public partial class ComparisonAccuracy
             {
                 overallFieldAccuracyRow.Cells!.Add(overallCell);
             }
-
-            if (perRunFailureComparision.Rows!.Count != 0)
-            {
-                // cleanup row name
-                foreach (var row in perRunFailureComparision.Rows!)
-                {
-                    var i = row.Name!.LastIndexOf('.');
-                    row.Name = row.Name[..i];
-                }
-                PerRunFailureComparisions.Add(perRunFailureComparision);
-            }
         }
 
-        FieldsAccuracy = new CompareTableModel
-        {
-            Title = "Fields Accuracy",
-            ColumnNames = [.. fieldAccuracyColNames.Select(x => new CompareTableColumn
-            {
-                Name = x.Item1,
-                HyperLink = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{x.Item2}"
-            })],
-            Rows = [.. fieldAccuracyRows.Values]
-        };
+        FieldsAccuracy!.Rows!.Clear();
+        FieldsAccuracy.Rows.AddRange(fieldAccuracyRows.Values);
+    }
+
+    private void AddFilter()
+    {
+        Filters.Add(new GroundTruthTagModel(new GroundTruthTag()));
+    }
+
+    private void OnDeleteFilter(GroundTruthTagModel filter)
+    {
+        var list = Filters.Where(x => x.Id != filter.Id).ToList();
+        Filters.Clear();
+        Filters.AddRange(list);
+
+        Refresh();
+        RefreshFailures();
+        StateHasChanged();
+    }
+
+    private void OnFilterChanged()
+    {
+        Refresh();
+        RefreshFailures();
+        StateHasChanged();
     }
 }
 
@@ -198,4 +241,81 @@ public class FieldAccuracy
     public string? Name { get; set; }
     public int Correct { get; set; }
     public int Total { get; set; }
+}
+
+public enum GroundTruthTagComprisons
+{
+    Equal,
+    NotEqual
+}
+
+public class GroundTruthTagModel(GroundTruthTag Tag)
+{
+    public Guid Id { get; } = Guid.NewGuid();
+    public GroundTruthTagComprisons Comprison { get; set; }
+    public GroundTruthTag Tag { get; } = Tag;
+}
+
+public class ExperimentRunResultModel(ExperimentRunResult RunResult, ExperimentMetric Metric, GroundTruthImage GroundTruth, Evaluation eval)
+{
+    public readonly double InferenceTime = Metric.Value!.Value;
+
+    public ExperimentRunResult RunResult { get; } = RunResult;
+    public ExperimentMetric Metric { get; } = Metric;
+    public GroundTruthImage GroundTruth { get; } = GroundTruth;
+    public List<AssertionModel> Assertions { get; } = eval.GetAssertions(GroundTruth, RunResult.Text!);
+}
+
+public class ExpRunModel(FileSystemApi Client, Guid ProjectId, Guid ExperimentId, ExperimentRun ExperimentRun, ILogger Logger)
+{
+    public readonly List<ExperimentRunResultModel> Results = [];
+
+    public async Task InitAsync(Evaluation eval)
+    {
+        var results = await Client!.GetExperimentRunResultsAsync(ProjectId, ExperimentId, ExperimentRun.Id);
+        if (results is null)
+        {
+            Logger!.LogError("unable to get experiment run");
+            return;
+        }
+
+        var metrics = await Client!.GetExperimentRunMetricsAsync(ProjectId, ExperimentId, ExperimentRun.Id);
+        if (metrics is null)
+        {
+            Logger!.LogError("unable to get experiment run metrics");
+            return;
+        }
+
+        foreach (var res in results)
+        {
+            var metric = metrics.SingleOrDefault(x => x.ResultId == res.Id);
+            if (metric is null)
+            {
+                Logger!.LogError("unable to get metric for result");
+                return;
+            }
+
+            if (metric.Name != "inference_time")
+            {
+                Logger!.LogError("metric name is not implemented: {metric_name}", metric.Name);
+                return;
+            }
+
+            if (!metric.Meta!.TryGetValue("image_file_path", out var imagePathObj))
+            {
+                Logger!.LogError("unable to get image file path");
+                return;
+            }
+
+            var imagePath = imagePathObj.Replace(".jpg", ".json");
+            var groundTruthResponse = await Client.GetJsonAsync<GroundTruthImage>(imagePath);
+            if (!groundTruthResponse.Success)
+            {
+                Logger!.LogError("unable to get ground truth json for {imagePath}", imagePath);
+                return;
+            }
+
+            Results.Add(new ExperimentRunResultModel(res, metric, groundTruthResponse.Result!, eval));
+        }
+    }
 }

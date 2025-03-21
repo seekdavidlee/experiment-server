@@ -1,7 +1,15 @@
 ﻿<RadzenRow>
-    <RadzenStack Orientation="Orientation.Horizontal">
-
-    </RadzenStack>
+    <RadzenColumn SizeMD="2">
+        <RadzenButton Click=@AddFilter Text="+ Filter" ButtonStyle="ButtonStyle.Primary" />
+    </RadzenColumn>
+    <RadzenColumn SizeMD="2">
+        <RadzenStack Orientation="Orientation.Horizontal">
+            @foreach (var filter in Filters)
+            {
+                <FilterView OnSave=@OnFilterChanged OnDelete=@OnDeleteFilter Value=@filter />
+            }
+        </RadzenStack>
+    </RadzenColumn>
 </RadzenRow>
 <RadzenRow>
     <TableView TableModel="@FieldsAccuracy" />
