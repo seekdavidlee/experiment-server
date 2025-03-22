@@ -9,7 +9,7 @@
                 <td style="width:120px"><h3>Name</h3></td>
                 @if (TableModel is not null && TableModel.ColumnNames is not null)
                 {
-                    foreach (var colName in TableModel.ColumnNames)
+                    foreach (var colName in TableModel.ColumnNames.Where(x => x.Hide != true))
                     {
                         <td style="width:600px; border: 1px solid black;">
                             <h4>
@@ -28,14 +28,27 @@
             </tr>
         </thead>
         <tbody>
-            @if (TableModel is not null)
+            @if (TableModel is not null && TableModel.ColumnNames is not null)
             {
+                List<int> indexesToSkip = [];
+                for (var y = 0; y < TableModel.ColumnNames.Length; y++)
+                {
+                    if (TableModel.ColumnNames[y].Hide == true)
+                    {
+                        indexesToSkip.Add(y);
+                    }
+                }
                 foreach (var row in TableModel.Rows!)
                 {
                     <tr>
                         <td style="border: 1px solid black;"><b>@row.Name</b></td>
-                        @foreach (var cell in row.Cells!)
+                        @for (var x = 0; x < row.Cells!.Count; x++)
                         {
+                            if (indexesToSkip.Contains(x))
+                            {
+                                continue;
+                            }
+                            var cell = row.Cells[x];
                             <td style="border: 1px solid black;">
                                 @if (cell.Values is not null)
                                 {
