@@ -1,0 +1,7 @@
+﻿<RadzenStack Orientation="Orientation.Horizontal">
+    <RadzenButton Click=@AddFilter Text="+ Filter" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Style="height:40px;" />
+    @foreach (var filter in Filters)
+    {
+        <FilterCard Keys=@Keys OnSave=@OnFilterChanged OnDelete=@OnDeleteFilter Value=@filter />
+    }
+</RadzenStack>

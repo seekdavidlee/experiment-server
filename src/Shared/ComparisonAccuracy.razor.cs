@@ -26,6 +26,9 @@ public partial class ComparisonAccuracy
     private CompareTableModel? FieldsAccuracy;
     private readonly List<CompareTableModel> PerRunFailureComparisions = [];
     private readonly List<ExpRunModel> ExpRuns = [];
+    private HashSet<string> fieldKeys = [];
+    private bool isInitialized;
+    private bool toggleMessageColumn;
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,7 +50,7 @@ public partial class ComparisonAccuracy
                     new CompareTableColumn { Name = "Field" },
                     new CompareTableColumn { Name = "Expected" },
                     new CompareTableColumn { Name = "Actual" },
-                    new CompareTableColumn { Name = "Message" },
+                    new CompareTableColumn { Name = "Message", Hide = true },
                     new CompareTableColumn { Name = "Tags" }
                 ]
             };
@@ -58,6 +61,21 @@ public partial class ComparisonAccuracy
             var item = new ExpRunModel(Client!, ProjectId, ExperimentId, experimentRun, Logger!);
             await item.InitAsync(eval);
             ExpRuns.Add(item);
+        }
+
+
+        foreach (var e in ExpRuns)
+        {
+            foreach (var r in e.Results)
+            {
+                if (r.GroundTruth.Tags is not null)
+                {
+                    foreach (var t in r.GroundTruth.Tags)
+                    {
+                        if (t.Name is not null) fieldKeys.Add(t.Name);
+                    }
+                }
+            }
         }
 
         FieldsAccuracy = new CompareTableModel
@@ -71,13 +89,21 @@ public partial class ComparisonAccuracy
             Rows = []
         };
 
-        Refresh();
-        RefreshFailures();
+        Refresh([]);
+        RefreshFailures([]);
+
+        isInitialized = true;
     }
 
-    private readonly List<GroundTruthTagModel> Filters = [];
+    private void ShowMessageColumn(bool show)
+    {
+        foreach (var perRunFailureComparision in PerRunFailureComparisions)
+        {
+            perRunFailureComparision.ColumnNames!.Single(x => x.Name == "Message").Hide = !show;
+        }
+    }
 
-    private void RefreshFailures()
+    private void RefreshFailures(List<GroundTruthTagModel> filters)
     {
         for (var i = 0; i < PerRunFailureComparisions.Count; i++)
         {
@@ -88,7 +114,7 @@ public partial class ComparisonAccuracy
 
             foreach (var res in item.Results)
             {
-                if (ShouldFilter(res))
+                if (ShouldFilter(filters, res))
                 {
                     continue;
                 }
@@ -138,11 +164,11 @@ public partial class ComparisonAccuracy
         }
     }
 
-    private bool ShouldFilter(ExperimentRunResultModel res)
+    private bool ShouldFilter(List<GroundTruthTagModel> filters, ExperimentRunResultModel res)
     {
-        if (Filters.Count > 0 &&
+        if (filters.Count > 0 &&
             res.GroundTruth.Tags is not null &&
-            !Filters.All(x => res.GroundTruth.Tags.Any(y => x.Tag.Name == y.Name &&
+            !filters.All(x => res.GroundTruth.Tags.Any(y => x.Tag.Name == y.Name &&
                 (x.Comprison == GroundTruthTagComprisons.Equal ? x.Tag.Value == y.Value : x.Tag.Value != y.Value))))
         {
             Logger!.LogInformation("skipping result due to filter");
@@ -151,7 +177,7 @@ public partial class ComparisonAccuracy
         return false;
     }
 
-    private void Refresh()
+    private void Refresh(List<GroundTruthTagModel> filters)
     {
         Dictionary<string, CompareTableRow> fieldAccuracyRows = [];
 
@@ -160,7 +186,7 @@ public partial class ComparisonAccuracy
             Dictionary<string, FieldAccuracy> fields = [];
             foreach (var res in item.Results)
             {
-                if (ShouldFilter(res))
+                if (ShouldFilter(filters, res))
                 {
                     continue;
                 }
@@ -212,26 +238,11 @@ public partial class ComparisonAccuracy
         FieldsAccuracy.Rows.AddRange(fieldAccuracyRows.Values);
     }
 
-    private void AddFilter()
-    {
-        Filters.Add(new GroundTruthTagModel(new GroundTruthTag()));
-    }
 
-    private void OnDeleteFilter(GroundTruthTagModel filter)
+    private void OnFiltersChanged(List<GroundTruthTagModel> filters)
     {
-        var list = Filters.Where(x => x.Id != filter.Id).ToList();
-        Filters.Clear();
-        Filters.AddRange(list);
-
-        Refresh();
-        RefreshFailures();
-        StateHasChanged();
-    }
-
-    private void OnFilterChanged()
-    {
-        Refresh();
-        RefreshFailures();
+        Refresh(filters);
+        RefreshFailures(filters);
         StateHasChanged();
     }
 }

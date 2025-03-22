@@ -1,15 +1,10 @@
 ﻿<RadzenRow>
-    <RadzenColumn SizeMD="2">
-        <RadzenButton Click=@AddFilter Text="+ Filter" ButtonStyle="ButtonStyle.Primary" />
-    </RadzenColumn>
-    <RadzenColumn SizeMD="2">
-        <RadzenStack Orientation="Orientation.Horizontal">
-            @foreach (var filter in Filters)
-            {
-                <FilterView OnSave=@OnFilterChanged OnDelete=@OnDeleteFilter Value=@filter />
-            }
-        </RadzenStack>
-    </RadzenColumn>
+    @if (isInitialized)
+    {
+        <RadzenToggleButton Size="ButtonSize.Small" @bind-Value=@toggleMessageColumn Change=@ShowMessageColumn Text="@(toggleMessageColumn ? "Hide Message Column" : "Show Message Column" )" ButtonStyle="ButtonStyle.Light"
+                            ToggleButtonStyle="ButtonStyle.Dark" />
+        <FiltersPanel Keys=@fieldKeys.ToArray() OnUpdates=OnFiltersChanged />
+    }
 </RadzenRow>
 <RadzenRow>
     <TableView TableModel="@FieldsAccuracy" />

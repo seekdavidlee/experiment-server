@@ -4,12 +4,15 @@ using Radzen;
 
 namespace ExperimentServer.Shared;
 
-public partial class FilterView
+public partial class FilterCard
 {
     private bool IsEditMode { get; set; } = true;
 
     [Parameter]
     public GroundTruthTagModel? Value { get; set; }
+
+    [Parameter]
+    public string[]? Keys { get; set; }
 
     [Parameter]
     public Action<GroundTruthTagModel>? OnDelete { get; set; }

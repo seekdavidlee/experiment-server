@@ -33,4 +33,6 @@ public class CompareTableColumn
     public string? Name { get; set; }
 
     public string? HyperLink { get; set; }
+
+    public bool? Hide { get; set; }
 }
