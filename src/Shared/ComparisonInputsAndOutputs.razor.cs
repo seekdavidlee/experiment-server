@@ -30,7 +30,7 @@ public partial class ComparisonInputsAndOutputs
     {
         InitInputs(Runs!);
 
-       await InitOutputsAsync(Runs!);
+        await InitOutputsAsync(Runs!);
     }
 
     private void InitInputs(List<ExperimentRun> runs)
@@ -92,6 +92,7 @@ public partial class ComparisonInputsAndOutputs
         outputRows.Add("MinInferenceTime", new CompareTableRow { Name = "Min Inference (secs)", Cells = [] });
         outputRows.Add("MaxInferenceTime", new CompareTableRow { Name = "Max Inference (secs)", Cells = [] });
         outputRows.Add("StdInferenceTime", new CompareTableRow { Name = "Std Deviation Inference", Cells = [] });
+        outputRows.Add("TotalRuns", new CompareTableRow { Name = "Total Runs", Cells = [] });
         outputRows.Add("TotalRunTime", new CompareTableRow { Name = "Total Run Time", Cells = [] });
 
         foreach (var experimentRun in runs)
@@ -116,6 +117,8 @@ public partial class ComparisonInputsAndOutputs
             outputRows[$"Max{nameof(ExperimentRunResult.PromptTokens)}"].Cells!.Add(new CompareTableCell { Value = results.Select(x => x.PromptTokens).Max().ToString() });
             outputRows[$"Min{nameof(ExperimentRunResult.CompletionTokens)}"].Cells!.Add(new CompareTableCell { Value = results.Select(x => x.CompletionTokens).Min().ToString() });
             outputRows[$"Max{nameof(ExperimentRunResult.CompletionTokens)}"].Cells!.Add(new CompareTableCell { Value = results.Select(x => x.CompletionTokens).Max().ToString() });
+
+            outputRows["TotalRuns"].Cells!.Add(new CompareTableCell { Value = results.Count.ToString() });
 
             var ts = (experimentRun.End!.Value - experimentRun.Start!.Value);
             outputRows["TotalRunTime"].Cells!.Add(new CompareTableCell { Value = string.Format("{0:%m} minutes and {0:%s} seconds", ts) });
