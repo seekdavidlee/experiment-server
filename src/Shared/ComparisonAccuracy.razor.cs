@@ -23,6 +23,9 @@ public partial class ComparisonAccuracy
     [Inject]
     private ILogger<ComparisonAccuracy>? Logger { get; set; }
 
+    [Inject]
+    private InProgressIndicatorService? InProgressIndicator { get; set; }
+
     private CompareTableModel? FieldsAccuracy;
     private readonly List<CompareTableModel> PerRunFailureComparisions = [];
     private readonly List<ExpRunModel> ExpRuns = [];
@@ -32,7 +35,9 @@ public partial class ComparisonAccuracy
 
     protected override async Task OnInitializedAsync()
     {
+        InProgressIndicator!.Show("loading experiments");
         await InitAsync(Runs!);
+        InProgressIndicator!.Hide();
     }
 
     private async Task InitAsync(List<ExperimentRun> runs)
@@ -241,8 +246,10 @@ public partial class ComparisonAccuracy
 
     private void OnFiltersChanged(List<GroundTruthTagModel> filters)
     {
+        InProgressIndicator!.Show("refreshing view from filters");
         Refresh(filters);
         RefreshFailures(filters);
+        InProgressIndicator!.Hide();
         StateHasChanged();
     }
 }

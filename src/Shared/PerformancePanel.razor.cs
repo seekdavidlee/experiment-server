@@ -1,4 +1,5 @@
 ﻿using ExperimentServer.Models;
+using ExperimentServer.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace ExperimentServer.Shared;
@@ -10,6 +11,9 @@ public partial class PerformancePanel
 
     private List<CompareTableModel>? CompareTables { get; set; } = [];
 
+    [Inject]
+    private InProgressIndicatorService? InProgressIndicator { get; set; }
+
     private string[]? FieldKeys { get; set; }
     private string? SelectedFieldKey { get; set; }
     private bool isComparisonReady;
@@ -18,6 +22,7 @@ public partial class PerformancePanel
     {
         if (RunsResults is not null)
         {
+            InProgressIndicator!.Show("loading performance data");
             var hash = new HashSet<string>();
             foreach (var run in RunsResults)
             {
@@ -39,8 +44,7 @@ public partial class PerformancePanel
             }
 
             FieldKeys = [.. hash];
-
-
+            InProgressIndicator!.Hide();
         }
     }
 
@@ -48,6 +52,7 @@ public partial class PerformancePanel
     {
         if (SelectedFieldKey is not null)
         {
+            InProgressIndicator!.Show("loading performance data");
             isComparisonReady = false;
 
             Dictionary<string, Dictionary<string, int>> multiClassifer = [];
@@ -87,6 +92,7 @@ public partial class PerformancePanel
                 }).ToList();
             }
 
+            InProgressIndicator!.Hide();
             isComparisonReady = true;
         }
     }

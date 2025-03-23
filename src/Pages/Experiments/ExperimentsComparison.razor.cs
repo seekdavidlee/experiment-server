@@ -1,6 +1,7 @@
 ﻿
 using ExperimentServer.Models;
 using ExperimentServer.Services;
+using ExperimentServer.Shared;
 using Microsoft.AspNetCore.Components;
 
 namespace ExperimentServer.Pages.Experiments;
@@ -28,6 +29,8 @@ public partial class ExperimentsComparison
     [Inject]
     private ILogger<ExperimentsComparison>? Logger { get; set; }
 
+    [Inject]
+    private InProgressIndicatorService? InProgressIndicator { get; set; }
 
     private List<ExperimentRun>? experimentRuns;
     protected override async Task OnInitializedAsync()
@@ -45,6 +48,8 @@ public partial class ExperimentsComparison
                 return;
             }
 
+            InProgressIndicator!.Show("loading experiments");
+
             List<ExperimentRun> runs = [];
             var runIds = Runs.Split(',').Select(x => Guid.Parse(x)).ToList();
             foreach (var runId in runIds)
@@ -60,6 +65,7 @@ public partial class ExperimentsComparison
                 }
             }
             experimentRuns = runs;
+            InProgressIndicator!.Hide();
         }
     }
 

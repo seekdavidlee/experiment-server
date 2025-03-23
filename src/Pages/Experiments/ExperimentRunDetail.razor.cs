@@ -1,5 +1,6 @@
 ﻿using ExperimentServer.Models;
 using ExperimentServer.Services;
+using ExperimentServer.Shared;
 using Microsoft.AspNetCore.Components;
 
 namespace ExperimentServer.Pages.Experiments;
@@ -24,6 +25,9 @@ public partial class ExperimentRunDetail
     [Inject]
     private NavigationManager? NavigationManager { get; set; }
 
+    [Inject]
+    private InProgressIndicatorService? InProgressIndicator { get; set; }
+
     private ExperimentRun? model;
 
     private List<ExperimentLog>? Logs { get; set; }
@@ -41,6 +45,7 @@ public partial class ExperimentRunDetail
 
     public async Task RefreshAsync(bool useSessionModel)
     {
+        InProgressIndicator!.Show("loading experiment run data");
         ErrorMessage = null;
 
         bool foundSessionModel = false;
@@ -67,6 +72,7 @@ public partial class ExperimentRunDetail
         Logs = await Client!.GetExperimentRunLogsAsync(ProjectId, ExperimentId, RunId);
         Results = await Client!.GetExperimentRunResultsAsync(ProjectId, ExperimentId, RunId);
         Metrics = await Client!.GetExperimentRunMetricsAsync(ProjectId, ExperimentId, RunId);
+        InProgressIndicator.Hide();
     }
 
     private void Back()

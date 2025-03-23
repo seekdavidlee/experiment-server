@@ -40,5 +40,6 @@ builder.Services.AddScoped<FileSystemApi>();
 builder.Services.AddScoped<ImageConversionApi>();
 builder.Services.AddScoped<InferenceApi>();
 builder.Services.AddSingleton<UserSession>();
+builder.Services.AddSingleton<InProgressIndicatorService>();
 
 await builder.Build().RunAsync();
