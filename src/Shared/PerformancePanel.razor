@@ -1,0 +1,16 @@
+﻿<RadzenRow>
+    <RadzenStack Orientation="Orientation.Horizontal">
+        <RadzenLabel Text="Classification:" />
+        @if (FieldKeys is not null)
+        {
+            <RadzenDropDown Style="width:150px" Data=@FieldKeys @bind-Value=@SelectedFieldKey />
+            <RadzenButton Click=@Apply Text="Apply" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" />
+        }
+    </RadzenStack>
+</RadzenRow>
+<RadzenRow>
+    @if (isComparisonReady && CompareTable is not null)
+    {
+        <TableView TableModel=@CompareTable />
+    }
+</RadzenRow>

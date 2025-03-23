@@ -3,6 +3,7 @@
 public class CompareTableModel
 {
     public string? Title { get; set; }
+    public string ColumnKey { get; set; } = "Name";
     public CompareTableColumn[]? ColumnNames { get; set; }
     public List<CompareTableRow>? Rows { get; set; }
 }

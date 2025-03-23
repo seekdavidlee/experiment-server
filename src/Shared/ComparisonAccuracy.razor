@@ -1,15 +1,28 @@
-﻿<RadzenRow>
-    @if (isInitialized)
-    {
-        <RadzenToggleButton Size="ButtonSize.Small" @bind-Value=@toggleMessageColumn Change=@ShowMessageColumn Text="@(toggleMessageColumn ? "Hide Message Column" : "Show Message Column" )" ButtonStyle="ButtonStyle.Light"
-                            ToggleButtonStyle="ButtonStyle.Dark" />
-        <FiltersPanel Keys=@fieldKeys.ToArray() OnUpdates=OnFiltersChanged />
-    }
-</RadzenRow>
-<RadzenRow>
-    <TableView TableModel="@FieldsAccuracy" />
-    @foreach (var failure in PerRunFailureComparisions)
-    {
-        <TableView TableModel="@failure" />
-    }
-</RadzenRow>
+﻿<RadzenTabs RenderMode="TabRenderMode.Client">
+    <Tabs>
+        <RadzenTabsItem Text="Failures">
+            <RadzenRow>
+                @if (isInitialized)
+                {
+                    <RadzenToggleButton Size="ButtonSize.Small" @bind-Value=@toggleMessageColumn Change=@ShowMessageColumn Text="@(toggleMessageColumn ? "Hide Message Column" : "Show Message Column" )" ButtonStyle="ButtonStyle.Light"
+                                        ToggleButtonStyle="ButtonStyle.Dark" />
+                    <FiltersPanel Keys=@fieldKeys.ToArray() OnUpdates=OnFiltersChanged />
+                }
+            </RadzenRow>
+            <RadzenRow>
+                <TableView TableModel="@FieldsAccuracy" />
+                @foreach (var failure in PerRunFailureComparisions)
+                {
+                    <TableView TableModel="@failure" />
+                }
+            </RadzenRow>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Performance">
+            @if (isInitialized)
+            {
+                <PerformancePanel RunsResults=@ExpRuns />
+            }
+        </RadzenTabsItem>
+    </Tabs>
+</RadzenTabs>
+

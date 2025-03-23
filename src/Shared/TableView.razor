@@ -6,9 +6,9 @@
     <table style="border: 3px solid black; border-collapse: collapse;">
         <thead>
             <tr>
-                <td style="width:120px"><h3>Name</h3></td>
                 @if (TableModel is not null && TableModel.ColumnNames is not null)
                 {
+                    <td style="width:120px"><h3>@((MarkupString)TableModel.ColumnKey.Replace("\n", "<br />"))</h3></td>
                     foreach (var colName in TableModel.ColumnNames.Where(x => x.Hide != true))
                     {
                         <td style="width:600px; border: 1px solid black;">
