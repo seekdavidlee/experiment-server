@@ -9,8 +9,11 @@
     </RadzenStack>
 </RadzenRow>
 <RadzenRow>
-    @if (isComparisonReady && CompareTable is not null)
+    @if (isComparisonReady)
     {
-        <TableView TableModel=@CompareTable />
+        foreach (var compareTable in CompareTables!)
+        {
+            <TableView TableModel=@compareTable />
+        }
     }
 </RadzenRow>

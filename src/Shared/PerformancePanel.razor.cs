@@ -8,7 +8,7 @@ public partial class PerformancePanel
     [Parameter]
     public List<ExpRunModel>? RunsResults { get; set; }
 
-    private CompareTableModel? CompareTable { get; set; }
+    private List<CompareTableModel>? CompareTables { get; set; } = [];
 
     private string[]? FieldKeys { get; set; }
     private string? SelectedFieldKey { get; set; }
@@ -28,15 +28,19 @@ public partial class PerformancePanel
                         hash.Add(a.Field);
                     }
                 }
+
+                var compareTable = new CompareTableModel()
+                {
+                    Title = $"Multiclass classification: {run.Name}",
+                    ColumnKey = "Expected ==> \nAcutal ==v"
+                };
+
+                CompareTables!.Add(compareTable);
             }
 
             FieldKeys = [.. hash];
 
-            CompareTable = new()
-            {
-                Title = "Multiclass classification",
-                ColumnKey = "Expected ==> \nAcutal ==v"
-            };
+
         }
     }
 
@@ -49,8 +53,9 @@ public partial class PerformancePanel
             Dictionary<string, Dictionary<string, int>> multiClassifer = [];
             HashSet<string> uniqueValues = new(FieldKeys!.Select(f => f.ToLower()));
 
-            foreach (var run in RunsResults!)
+            for (int i = 0; i < RunsResults!.Count; i++)
             {
+                var run = RunsResults[i];
                 foreach (var res in run.Results)
                 {
                     foreach (var a in res.Assertions.Where(x => x.Field == SelectedFieldKey))
@@ -73,14 +78,14 @@ public partial class PerformancePanel
                         compareDic[actualKey] = ++value;
                     }
                 }
-            }
 
-            CompareTable!.ColumnNames = multiClassifer.Keys.Select(k => new CompareTableColumn { Name = k }).ToArray();
-            CompareTable.Rows = multiClassifer.Select(kvp => new CompareTableRow
-            {
-                Name = kvp.Key,
-                Cells = kvp.Value.Select(kvp => new CompareTableCell { Value = kvp.Value.ToString() }).ToList()
-            }).ToList();
+                CompareTables![i].ColumnNames = multiClassifer.Keys.Select(k => new CompareTableColumn { Name = k }).ToArray();
+                CompareTables[i].Rows = multiClassifer.Select(kvp => new CompareTableRow
+                {
+                    Name = kvp.Key,
+                    Cells = kvp.Value.Select(kvp => new CompareTableCell { Value = kvp.Value.ToString() }).ToList()
+                }).ToList();
+            }
 
             isComparisonReady = true;
         }

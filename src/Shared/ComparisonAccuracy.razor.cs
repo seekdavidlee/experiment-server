@@ -281,6 +281,8 @@ public class ExpRunModel(FileSystemApi Client, Guid ProjectId, Guid ExperimentId
 {
     public readonly List<ExperimentRunResultModel> Results = [];
 
+    public string Name => ExperimentRun.GetIdOrDescription();
+
     public async Task InitAsync(Evaluation eval)
     {
         var results = await Client!.GetExperimentRunResultsAsync(ProjectId, ExperimentId, ExperimentRun.Id);
