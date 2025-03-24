@@ -15,6 +15,8 @@
         {
             var tbl = RecallPrecisionTables![i];
             var compareTable = CompareTables[i];
+            var sampleSize = SampleSizeTables![i];
+            <TableView TableModel="@sampleSize" />
             <TableView TableModel=@tbl />
             <TableView TableModel=@compareTable />
         }

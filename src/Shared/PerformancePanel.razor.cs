@@ -11,6 +11,7 @@ public partial class PerformancePanel
 
     private List<CompareTableModel>? CompareTables { get; set; } = [];
     private List<CompareTableModel>? RecallPrecisionTables { get; set; } = [];
+    private List<CompareTableModel>? SampleSizeTables { get; set; } = [];
 
     [Inject]
     private InProgressIndicatorService? InProgressIndicator { get; set; }
@@ -54,6 +55,17 @@ public partial class PerformancePanel
                     Rows = []
                 };
                 RecallPrecisionTables!.Add(recallPrecisionTable);
+
+                var sampleSizeTable = new CompareTableModel()
+                {
+                    Title = $"Sample Size: {run.Name}",
+                    ColumnNames =
+                    [
+                        new CompareTableColumn { Name = "Size" }
+                    ],
+                    Rows = []
+                };
+                SampleSizeTables!.Add(sampleSizeTable);
             }
 
             FieldKeys = [.. hash];
@@ -73,10 +85,30 @@ public partial class PerformancePanel
                 // todo: this should come from the user because the user knows all the expected fields.
                 HashSet<string> uniqueValues = [];
 
+                HashSet<Guid> seenGroundTruths = [];    // prevent duplicate ground truths from being counted
+                Dictionary<string, int> sampleSize = [];
                 Dictionary<string, Dictionary<string, int>> multiClassifer = [];
                 var run = RunsResults[i];
                 foreach (var res in run.Results)
                 {
+                    if (!seenGroundTruths.Contains(res.GroundTruth.Id))
+                    {
+                        var sample = res.GroundTruth.Fields!.SingleOrDefault(x => x.Name == SelectedFieldKey);
+                        if (sample is not null)
+                        {
+                            if (sampleSize.TryGetValue(sample.Value!.ToLower(), out int value))
+                            {
+                                sampleSize[sample.Value.ToLower()] = ++value;
+                            }
+                            else
+                            {
+                                sampleSize[sample.Value.ToLower()] = 1;
+                            }
+
+                            seenGroundTruths.Add(res.GroundTruth.Id);
+                        }
+                    }
+
                     foreach (var a in res.Assertions.Where(x => x.Field == SelectedFieldKey))
                     {
                         var expectedKey = a.Expected.ToLower();
@@ -153,6 +185,21 @@ public partial class PerformancePanel
                         Cells = [recallCell, precisionCell]
                     });
                 }
+
+                foreach (var key in sampleSize.Keys)
+                {
+                    SampleSizeTables![i].Rows!.Add(new CompareTableRow
+                    {
+                        Name = key,
+                        Cells = [new CompareTableCell { Value = sampleSize[key].ToString() }]
+                    });
+                }
+
+                SampleSizeTables![i].Rows!.Add(new CompareTableRow
+                {
+                    Name = "TOTAL",
+                    Cells = [new CompareTableCell { Value = sampleSize.Values.Sum().ToString() }]
+                });
             }
 
             InProgressIndicator!.Hide();
