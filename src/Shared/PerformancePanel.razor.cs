@@ -10,6 +10,7 @@ public partial class PerformancePanel
     public List<ExpRunModel>? RunsResults { get; set; }
 
     private List<CompareTableModel>? CompareTables { get; set; } = [];
+    private List<CompareTableModel>? RecallPrecisionTables { get; set; } = [];
 
     [Inject]
     private InProgressIndicatorService? InProgressIndicator { get; set; }
@@ -41,6 +42,18 @@ public partial class PerformancePanel
                 };
 
                 CompareTables!.Add(compareTable);
+
+                var recallPrecisionTable = new CompareTableModel()
+                {
+                    Title = $"Recall and Precision: {run.Name}",
+                    ColumnNames =
+                    [
+                        new CompareTableColumn { Name = "Recall" },
+                        new CompareTableColumn { Name = "Precision" }
+                    ],
+                    Rows = []
+                };
+                RecallPrecisionTables!.Add(recallPrecisionTable);
             }
 
             FieldKeys = [.. hash];
@@ -55,11 +68,13 @@ public partial class PerformancePanel
             InProgressIndicator!.Show("loading performance data");
             isComparisonReady = false;
 
-            Dictionary<string, Dictionary<string, int>> multiClassifer = [];
+
             HashSet<string> uniqueValues = new(FieldKeys!.Select(f => f.ToLower()));
+
 
             for (int i = 0; i < RunsResults!.Count; i++)
             {
+                Dictionary<string, Dictionary<string, int>> multiClassifer = [];
                 var run = RunsResults[i];
                 foreach (var res in run.Results)
                 {
@@ -88,8 +103,54 @@ public partial class PerformancePanel
                 CompareTables[i].Rows = multiClassifer.Select(kvp => new CompareTableRow
                 {
                     Name = kvp.Key,
-                    Cells = kvp.Value.Select(kvp => new CompareTableCell { Value = kvp.Value.ToString() }).ToList()
+                    Cells = multiClassifer.Keys.Select(x =>
+                    {
+                        string val = multiClassifer[kvp.Key].TryGetValue(x, out var value) ? value.ToString() : "0";
+                        return new CompareTableCell { Value = val };
+                    }).ToList()
                 }).ToList();
+
+                // Precision = True Positives (TP) / (True Positives + False Positives)
+                // Recall = True Positives(TP) / (True Positives + False Negatives)
+                foreach (var category in multiClassifer.Keys)
+                {
+                    var row = multiClassifer[category];
+                    if (!row.ContainsKey(category))
+                    {
+                        RecallPrecisionTables![i].Rows!.Add(new CompareTableRow
+                        {
+                            Name = category,
+                            Cells =
+                            [
+                                new CompareTableCell{ Value ="N/A" },
+                                new CompareTableCell{ Value ="N/A" },
+                            ]
+                        });
+                        continue;
+                    }
+
+                    var truthPositive = row[category];
+                    var falseNegativePlusTruePositive = row.Values.Sum();
+                    // recall
+                    var recallCell = new CompareTableCell { Value = "N/A" };
+                    if (falseNegativePlusTruePositive > 0)
+                    {
+                        recallCell.Value = String.Format("{0:F3}", (truthPositive / (double)falseNegativePlusTruePositive));
+                    }
+
+                    var precisionCell = new CompareTableCell { Value = "N/A" };
+                    var falsePositivePlusTruePositive = multiClassifer.Values.SelectMany(x => x).Where(x => x.Key == category).Sum(x => x.Value);
+                    if (falsePositivePlusTruePositive > 0)
+                    {
+                        precisionCell.Value = String.Format("{0:F3}", (truthPositive / (double)falsePositivePlusTruePositive));
+                    }
+
+                    RecallPrecisionTables![i].Rows!.Add(new CompareTableRow
+                    {
+                        Name = category,
+                        Cells = [recallCell, precisionCell]
+                    });
+                }
             }
 
             InProgressIndicator!.Hide();

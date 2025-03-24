@@ -11,6 +11,10 @@
 <RadzenRow>
     @if (isComparisonReady)
     {
+        foreach (var tbl in RecallPrecisionTables!)
+        {
+            <TableView TableModel=@tbl />
+        }
         foreach (var compareTable in CompareTables!)
         {
             <TableView TableModel=@compareTable />
