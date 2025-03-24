@@ -68,12 +68,11 @@ public partial class PerformancePanel
             InProgressIndicator!.Show("loading performance data");
             isComparisonReady = false;
 
-
-            HashSet<string> uniqueValues = new(FieldKeys!.Select(f => f.ToLower()));
-
-
             for (int i = 0; i < RunsResults!.Count; i++)
             {
+                // todo: this should come from the user because the user knows all the expected fields.
+                HashSet<string> uniqueValues = [];
+
                 Dictionary<string, Dictionary<string, int>> multiClassifer = [];
                 var run = RunsResults[i];
                 foreach (var res in run.Results)
@@ -81,7 +80,9 @@ public partial class PerformancePanel
                     foreach (var a in res.Assertions.Where(x => x.Field == SelectedFieldKey))
                     {
                         var expectedKey = a.Expected.ToLower();
-                        var actualKey = string.IsNullOrEmpty(a.Actual) ? "_null_or_empty_" : (uniqueValues!.Contains(a.Actual.ToLower()) ? "_invalid_option_" : a.Actual.ToLower());
+                        var actualKey = string.IsNullOrEmpty(a.Actual) ? "_null_or_empty_" : a.Actual.ToLower();
+
+                        uniqueValues.Add(actualKey);
 
                         if (!multiClassifer.TryGetValue(expectedKey, out Dictionary<string, int>? compareDic))
                         {
@@ -99,11 +100,11 @@ public partial class PerformancePanel
                     }
                 }
 
-                CompareTables![i].ColumnNames = multiClassifer.Keys.Select(k => new CompareTableColumn { Name = k }).ToArray();
+                CompareTables![i].ColumnNames = uniqueValues.Select(k => new CompareTableColumn { Name = k }).ToArray();
                 CompareTables[i].Rows = multiClassifer.Select(kvp => new CompareTableRow
                 {
                     Name = kvp.Key,
-                    Cells = multiClassifer.Keys.Select(x =>
+                    Cells = uniqueValues.Select(x =>
                     {
                         string val = multiClassifer[kvp.Key].TryGetValue(x, out var value) ? value.ToString() : "0";
                         return new CompareTableCell { Value = val };
@@ -114,6 +115,7 @@ public partial class PerformancePanel
                 // Recall = True Positives(TP) / (True Positives + False Negatives)
                 foreach (var category in multiClassifer.Keys)
                 {
+                    string target = category!;
                     var row = multiClassifer[category];
                     if (!row.ContainsKey(category))
                     {
@@ -131,7 +133,7 @@ public partial class PerformancePanel
 
                     var truthPositive = row[category];
                     var falseNegativePlusTruePositive = row.Values.Sum();
-                    // recall
+
                     var recallCell = new CompareTableCell { Value = "N/A" };
                     if (falseNegativePlusTruePositive > 0)
                     {

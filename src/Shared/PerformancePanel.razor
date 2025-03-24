@@ -11,12 +11,11 @@
 <RadzenRow>
     @if (isComparisonReady)
     {
-        foreach (var tbl in RecallPrecisionTables!)
+        for (var i = 0; i < CompareTables!.Count; i++)
         {
+            var tbl = RecallPrecisionTables![i];
+            var compareTable = CompareTables[i];
             <TableView TableModel=@tbl />
-        }
-        foreach (var compareTable in CompareTables!)
-        {
             <TableView TableModel=@compareTable />
         }
     }
