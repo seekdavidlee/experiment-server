@@ -1,5 +1,12 @@
 ﻿@page "/datasets/{DatasetId:guid}/images/ground-truth/{Id:guid}"
 
+@if (Model is not null)
+{
+
+    string prefix = (Model.Id == Guid.Empty) ? "New" : "Edit ";
+    <PageTitle>@prefix Ground Truth Image</PageTitle>
+}
+
 <RadzenStack Style="width:100%">
     @if (ErrorMessage is not null)
     {
@@ -124,7 +131,14 @@
         </RadzenRow>
         <RadzenRow Gap="2rem" Class="rz-p-0 rz-p-lg-4">
             <RadzenRow Style="width:100%">
-                <RadzenColumn SizeMD="9"></RadzenColumn>
+                <RadzenColumn SizeMD="3">
+                    <RadzenStack Visible="@(GroundTruthImages is not null)" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+                        <RadzenLabel>@(CurrentIndex + 1) of @(GroundTruthImages!.Count)</RadzenLabel>
+                        <RadzenButton Disabled=@(CurrentIndex == 0) ButtonStyle="ButtonStyle.Light" Click=@PreviousImage Size="ButtonSize.Large" Text="Previous" />
+                        <RadzenButton Disabled=@(CurrentIndex == GroundTruthImages!.Count-1) ButtonStyle=ButtonStyle.Light Click=@NextImage Size="ButtonSize.Large" Text="Next" />
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn SizeMD="6"></RadzenColumn>
                 <RadzenColumn SizeMD="3">
                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
                         <RadzenButton Disabled=@IsSaving ButtonStyle="ButtonStyle.Primary" Click=@(async()=>await SaveAsync()) Size="ButtonSize.Large" Icon="save" Text="Save" />

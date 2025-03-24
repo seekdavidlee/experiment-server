@@ -74,13 +74,16 @@ public partial class DataSetManager
             Id = Guid.NewGuid(),
             Fields = JsonSerializer.Deserialize<DataSetModelField[]>(JsonSerializer.Serialize(DataSetModel!.Fields)),   // create a copy of all valid fields
         };
-        UserSession!.Items[nameof(GroundTruthImage)] = groundTruthImage;
+
+        UserSession!.Items.Remove($"ListOf{nameof(GroundTruthImage)}");
+        UserSession.Items[nameof(GroundTruthImage)] = groundTruthImage;
         NavigationManager!.NavigateTo($"datasets/{DatasetId}/images/ground-truth/{groundTruthImage.Id}");
     }
 
     private void Edit(GroundTruthImage groundTruthImage)
     {
-        UserSession!.Items[nameof(GroundTruthImage)] = groundTruthImage;
+        UserSession!.Items[$"ListOf{nameof(GroundTruthImage)}"] = model.Items;
+        UserSession.Items[nameof(GroundTruthImage)] = groundTruthImage;
         NavigationManager!.NavigateTo($"datasets/{DatasetId}/images/ground-truth/{groundTruthImage.Id}");
     }
 

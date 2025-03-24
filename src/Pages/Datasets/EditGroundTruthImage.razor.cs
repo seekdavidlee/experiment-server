@@ -1,5 +1,6 @@
 ﻿using ExperimentServer.Models;
 using ExperimentServer.Services;
+using ExperimentServer.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Security.Cryptography;
@@ -28,6 +29,9 @@ public partial class EditGroundTruthImage
     [Inject]
     private ImageConversionApi? ImageConversionApi { get; set; }
 
+    [Inject]
+    private InProgressIndicatorService? InProgressIndicator { get; set; }
+
     private string? ErrorMessage;
 
     private bool IsSaving { get; set; }
@@ -40,12 +44,26 @@ public partial class EditGroundTruthImage
 
     private int ResizePercent { get; set; } = 50;
 
+    private int CurrentIndex;
+    private List<GroundTruthImage>? GroundTruthImages;
+
     protected override async Task OnInitializedAsync()
     {
+        string modelsKey = $"ListOf{nameof(GroundTruthImage)}";
         Model = UserSession!.Items[nameof(GroundTruthImage)] as GroundTruthImage;
-
-        if (Model is not null)
+        GroundTruthImages = UserSession.Items.TryGetValue(modelsKey, out object? value) ? value as List<GroundTruthImage> :  null;
+        if (GroundTruthImages is not null)
         {
+            CurrentIndex = GroundTruthImages.FindIndex(x => x.Id == Id);
+        }
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (Model is not null && GroundTruthImages is not null)
+        {
+            InProgressIndicator!.Show("loading ground truth...");
             var result = await Client!.GetGroundTruthImageAsync(DatasetId, Model);
             if (!result.Success)
             {
@@ -65,6 +83,28 @@ public partial class EditGroundTruthImage
             }
 
             originalModelHash = ComputeHash(JsonSerializer.Serialize(Model));
+            InProgressIndicator!.Hide();
+        }
+    }
+
+    private async Task NextImage()
+    {
+        if (GroundTruthImages is not null && CurrentIndex < GroundTruthImages.Count)
+        {
+            CurrentIndex++;
+            Model = GroundTruthImages[CurrentIndex];
+            await LoadAsync();
+
+        }
+    }
+
+    private async Task PreviousImage()
+    {
+        if (GroundTruthImages is not null && CurrentIndex > 0)
+        {
+            CurrentIndex--;
+            Model = GroundTruthImages[CurrentIndex];
+            await LoadAsync();
         }
     }
 
