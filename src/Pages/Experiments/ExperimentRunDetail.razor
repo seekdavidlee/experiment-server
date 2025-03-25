@@ -57,11 +57,11 @@
                                 </tr>
                                 <tr>
                                     <td>System Prompt</td>
-                                    <td>@model.SystemPrompt</td>
+                                    <td>@((MarkupString)(!string.IsNullOrEmpty(model.SystemPrompt) ? model.SystemPrompt.Replace("\n", "<br />") : ""))</td>
                                 </tr>
                                 <tr>
                                     <td>User Prompt</td>
-                                    <td>@model.UserPrompt</td>
+                                    <td>@((MarkupString)(!string.IsNullOrEmpty(model.UserPrompt) ? model.UserPrompt.Replace("\n", "<br />") : ""))</td>
                                 </tr>
                                 <tr>
                                     <td>Iterations</td>
