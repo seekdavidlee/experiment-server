@@ -1,6 +1,5 @@
 ﻿using ExperimentServer.Models;
 using ExperimentServer.Services;
-using ExperimentServer.Shared;
 using Microsoft.AspNetCore.Components;
 
 namespace ExperimentServer.Pages.Experiments;
@@ -35,6 +34,14 @@ public partial class ExperimentRunDetail
     private List<ExperimentRunResult>? Results { get; set; }
 
     private List<ExperimentMetric>? Metrics { get; set; }
+
+    private bool ShowLogs { get; set; }
+    private string? ShowLogsText => ShowLogs ? "Hide Logs" : "Show Logs";
+
+    private void ToggleLogs()
+    {
+        ShowLogs = !ShowLogs;
+    }
 
     private string? ErrorMessage { get; set; }
 

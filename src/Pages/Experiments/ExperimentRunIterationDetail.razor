@@ -1,5 +1,8 @@
 ﻿@page "/projects/{ProjectId:guid}/experiments/{ExperimentId:guid}/runs/{RunId:guid}/detail"
-
+@if (groundTruth is not null)
+{
+    <PageTitle>Iteration Run: @groundTruth.DisplayName</PageTitle>
+}
 <RadzenStack Orientation="Orientation.Vertical">
     <RadzenRow AlignItems="AlignItems.Center">
         <RadzenColumn>
@@ -15,27 +18,34 @@
 
         </RadzenColumn>
     </RadzenRow>
-    <RadzenRow AlignItems="AlignItems.Center">
-        <RadzenColumn Size="12" SizeMD="8">
-            @if (!string.IsNullOrEmpty(Base64Image))
-            {
-                <div style="width:100%;height:500px; overflow:scroll;text-align:right;">
-                    <img style="height:@ImageZoomLevel%; width:auto;" src=@Base64Image />
-                </div>
-            }
+    <RadzenRow>
+        <RadzenColumn Size="12" SizeMD="7">
+            <RadzenRow>
+                <RadzenStack Orientation="Orientation.Vertical">
+                    <RadzenLabel Style="font-size: 12px;" Text="Zoom level:" title="Zoom level" />
+                    <RadzenSelectBar TValue="int" Size="ButtonSize.Small" @bind-Value="@ImageZoomLevel">
+                        <Items>
+                            <RadzenSelectBarItem Value="100" Text="100 " />
+                            <RadzenSelectBarItem Value="150" Text="150" />
+                            <RadzenSelectBarItem Value="180" Text="180" />
+                            <RadzenSelectBarItem Value="200" Text="200" />
+                            <RadzenSelectBarItem Value="300" Text="300" />
+                        </Items>
+                    </RadzenSelectBar>
+                </RadzenStack>
+            </RadzenRow>
+            <RadzenRow>
+                @if (!string.IsNullOrEmpty(Base64Image))
+                {
+                    <div style="width:100%;height:500px; overflow:scroll;text-align:right;">
+                        <img style="height:@ImageZoomLevel%; width:auto;" src=@Base64Image />
+                    </div>
+                }
+            </RadzenRow>
         </RadzenColumn>
-        <RadzenColumn Size="12" SizeMD="4">
+        <RadzenColumn Size="12" SizeMD="5">
             <RadzenStack Orientation="Orientation.Vertical">
-                <h3>Zoom Level:</h3>
-                <RadzenSelectBar TValue="int" Size="ButtonSize.Small" @bind-Value="@ImageZoomLevel">
-                    <Items>
-                        <RadzenSelectBarItem Value="100" Text="100 " />
-                        <RadzenSelectBarItem Value="150" Text="150" />
-                        <RadzenSelectBarItem Value="180" Text="180" />
-                        <RadzenSelectBarItem Value="200" Text="200" />
-                        <RadzenSelectBarItem Value="300" Text="300" />
-                    </Items>
-                </RadzenSelectBar>
+
                 @if (experimentRunResult is not null)
                 {
                     <div>

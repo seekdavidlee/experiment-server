@@ -5,155 +5,155 @@
         @ErrorMessage
     </RadzenAlert>
 }
-<RadzenPanel>
-    <HeaderTemplate>
-        <RadzenRow RowGap="0" Style="width:100%">
-            <RadzenColumn SizeMD="1">
-                <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
-                    <RadzenIcon Icon="home" class="rz-mr-1" /><b>Details</b>
-                </RadzenText>
-            </RadzenColumn>
-            <RadzenColumn SizeMD="11">
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
+@if (model is not null)
+{
+    <PageTitle>Experiment Run Details: @model.Description</PageTitle>
+}
+<RadzenStack>
+    <RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class="rz-p-4 rz-mb-6 rz-border-radius-1" Style="border: var(--rz-grid-cell-border); width:100%;">
+            <RadzenRow Style="width:100%">
+                <RadzenColumn SizeMD="10">
+                </RadzenColumn>
+                <RadzenColumn SizeMD="2">
                     <RadzenButton Click=@(args => RefreshAsync(false)) Text="Refresh" ButtonStyle="ButtonStyle.Primary" />
                     <RadzenButton Click=@Back Text="Back" ButtonStyle="ButtonStyle.Primary" />
-                </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStack>
+    </RadzenRow>
+    @if (model is not null)
+    {
+        <RadzenRow>
+            <RadzenColumn>
+                <table>
+                    <thead>
+                        <tr>
+                            <td style="width:120px"><h3>Key</h3></td>
+                            <td style="width:600px"><h3>Value</h3></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Run Id</td>
+                            <td>@model.Id.ToString()</td>
+                        </tr>
+                        <tr>
+                            <td>Description</td>
+                            <td>@model.Description</td>
+                        </tr>
+                        <tr>
+                            <td>Start</td>
+                            <td>@model.Start.ToString()</td>
+                        </tr>
+                        <tr>
+                            <td>End</td>
+                            <td>@model.End.ToString()</td>
+                        </tr>
+                        <tr>
+                            <td>Model Id</td>
+                            <td>@model.ModelId</td>
+                        </tr>
+                        <tr>
+                            <td>System Prompt</td>
+                            <td>@((MarkupString)(!string.IsNullOrEmpty(model.SystemPrompt) ? model.SystemPrompt.Replace("\n", "<br />") : ""))</td>
+                        </tr>
+                        <tr>
+                            <td>User Prompt</td>
+                            <td>@((MarkupString)(!string.IsNullOrEmpty(model.UserPrompt) ? model.UserPrompt.Replace("\n", "<br />") : ""))</td>
+                        </tr>
+                        <tr>
+                            <td>Iterations</td>
+                            <td>@model.Iterations.ToString()</td>
+                        </tr>
+                        <tr>
+                            <td>Max Tokens</td>
+                            <td>@model.MaxTokens.ToString()</td>
+                        </tr>
+                        <tr>
+                            <td>Temperature</td>
+                            <td>@model.Temperature.ToString()</td>
+                        </tr>
+                        <tr>
+                            <td>TopP</td>
+                            <td>@model.TopP.ToString()</td>
+                        </tr>
+                    </tbody>
+
+                </table>
             </RadzenColumn>
-        </RadzenRow>
-    </HeaderTemplate>
-    <ChildContent>
-        <RadzenCard class="rz-mt-4">
-            @if (model is not null)
-            {
-                <RadzenRow>
-                    <RadzenColumn>
+            <RadzenColumn>
+                <RadzenStack Orientation="Orientation.Vertical">
+                    <RadzenButton Click=@ToggleLogs Text=@ShowLogsText ButtonStyle="ButtonStyle.Secondary" />
+                    @if (Logs is not null && ShowLogs)
+                    {
                         <table>
                             <thead>
                                 <tr>
-                                    <td style="width:120px"><h3>Key</h3></td>
-                                    <td style="width:600px"><h3>Value</h3></td>
+                                    <td style="width:120px"><h3>Created</h3></td>
+                                    <td style="width:120px"><h3>Level</h3></td>
+                                    <td style="width:400px"><h3>Message</h3></td>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Run Id</td>
-                                    <td>@model.Id.ToString()</td>
-                                </tr>
-                                <tr>
-                                    <td>Description</td>
-                                    <td>@model.Description</td>
-                                </tr>
-                                <tr>
-                                    <td>Start</td>
-                                    <td>@model.Start.ToString()</td>
-                                </tr>
-                                <tr>
-                                    <td>End</td>
-                                    <td>@model.End.ToString()</td>
-                                </tr>
-                                <tr>
-                                    <td>Model Id</td>
-                                    <td>@model.ModelId</td>
-                                </tr>
-                                <tr>
-                                    <td>System Prompt</td>
-                                    <td>@((MarkupString)(!string.IsNullOrEmpty(model.SystemPrompt) ? model.SystemPrompt.Replace("\n", "<br />") : ""))</td>
-                                </tr>
-                                <tr>
-                                    <td>User Prompt</td>
-                                    <td>@((MarkupString)(!string.IsNullOrEmpty(model.UserPrompt) ? model.UserPrompt.Replace("\n", "<br />") : ""))</td>
-                                </tr>
-                                <tr>
-                                    <td>Iterations</td>
-                                    <td>@model.Iterations.ToString()</td>
-                                </tr>
-                                <tr>
-                                    <td>Max Tokens</td>
-                                    <td>@model.MaxTokens.ToString()</td>
-                                </tr>
-                                <tr>
-                                    <td>Temperature</td>
-                                    <td>@model.Temperature.ToString()</td>
-                                </tr>
-                                <tr>
-                                    <td>TopP</td>
-                                    <td>@model.TopP.ToString()</td>
-                                </tr>
+                                @foreach (var log in Logs)
+                                {
+                                    <tr>
+                                        <td>@log.Created!.Value.ToString()</td>
+                                        <td>@log.Level</td>
+                                        <td>@log.Message</td>
+                                    </tr>
+                                }
                             </tbody>
-
                         </table>
-                    </RadzenColumn>
-                    <RadzenColumn>
-                        @if (Logs is not null)
-                        {
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <td style="width:120px"><h3>Created</h3></td>
-                                        <td style="width:120px"><h3>Level</h3></td>
-                                        <td style="width:400px"><h3>Message</h3></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var log in Logs)
+                    }
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                @if (Results is not null)
+                {
+                    <table>
+                        <thead>
+                            <tr>
+                                <td style="width:100%"><h3>Text</h3></td>
+                                <td style="width:150px"><h3>Time Taken (Milliseconds)</h3></td>
+                                <td style="width:150px"><h3>Prompt Tokens</h3></td>
+                                <td style="width:150px"><h3>Completion Tokens</h3></td>
+                                <td style="width:150px"><h3>Total Tokens</h3></td>
+                                <td style="width:150px"><h3>Options</h3></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in Results)
+                            {
+                                var metric = Metrics!.SingleOrDefault(x => x.ResultId == result.Id && x.Name == "inference_time");
+                                <tr>
+                                    <td>@result.Text</td>
+                                    @if (metric is not null)
                                     {
-                                        <tr>
-                                            <td>@log.Created!.Value.ToString()</td>
-                                            <td>@log.Level</td>
-                                            <td>@log.Message</td>
-                                        </tr>
+                                        <td>@metric.Value</td>
                                     }
-                                </tbody>
-                            </table>
-                        }
-                    </RadzenColumn>
-                </RadzenRow>
-                <RadzenRow>
-                    <RadzenColumn>
-                        @if (Results is not null)
-                        {
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <td style="width:100%"><h3>Text</h3></td>
-                                        <td style="width:150px"><h3>Time Taken (Milliseconds)</h3></td>
-                                        <td style="width:150px"><h3>Prompt Tokens</h3></td>
-                                        <td style="width:150px"><h3>Completion Tokens</h3></td>
-                                        <td style="width:150px"><h3>Total Tokens</h3></td>
-                                        <td style="width:150px"><h3>Options</h3></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var result in Results)
+                                    else
                                     {
-                                        var metric = Metrics!.SingleOrDefault(x => x.ResultId == result.Id && x.Name == "inference_time");
-                                        <tr>
-                                            <td>@result.Text</td>
-                                            @if (metric is not null)
-                                            {
-                                                <td>@metric.Value</td>
-                                            }
-                                            else
-                                            {
-                                                <td style="color:red">missing!</td>
-                                            }
-                                            <td>@(result.PromptTokens)</td>
-                                            <td>@(result.CompletionTokens)</td>
-                                            <td>@(result.TotalTokens)</td>
-                                            <td>
-                                                @if (metric is not null)
-                                                {
-                                                    <RadzenButton Click=@(args => OpenImageAsync(result, metric)) Text="Show Image" ButtonStyle="ButtonStyle.Secondary" />
-                                                }
-                                            </td>
-                                        </tr>
+                                        <td style="color:red">missing!</td>
                                     }
-                                </tbody>
-                            </table>
-                        }
-                    </RadzenColumn>
-                </RadzenRow>
-            }
-        </RadzenCard>
-    </ChildContent>
-</RadzenPanel>
+                                    <td>@(result.PromptTokens)</td>
+                                    <td>@(result.CompletionTokens)</td>
+                                    <td>@(result.TotalTokens)</td>
+                                    <td>
+                                        @if (metric is not null)
+                                        {
+                                            <RadzenButton Click=@(args => OpenImageAsync(result, metric)) Text="Show Image" ButtonStyle="ButtonStyle.Secondary" />
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </RadzenColumn>
+        </RadzenRow>
+    }
+</RadzenStack>
