@@ -124,9 +124,9 @@ public partial class PerformancePanel
                     }
                 }
 
-                CompareTables![i].ColumnNames = expectedFieldKeys.Select(k => new CompareTableColumn { Name = k }).ToArray();
+                CompareTables![i].ColumnNames = [.. expectedFieldKeys.Select(k => new CompareTableColumn { Name = k }).OrderBy(x => x.Name)];
 
-                string[] actualFieldRowKeys = multiClassifer.Values.SelectMany(x => x).Select(x => x.Key).Distinct().ToArray();
+                string[] actualFieldRowKeys = [.. multiClassifer.Values.SelectMany(x => x).Select(x => x.Key).Concat(multiClassifer.Keys).Distinct().Order()];
 
                 CompareTables[i].Rows = actualFieldRowKeys.Select(kvp => new CompareTableRow
                 {
