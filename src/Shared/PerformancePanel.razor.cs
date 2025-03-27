@@ -11,7 +11,6 @@ public partial class PerformancePanel
 
     private List<CompareTableModel>? CompareTables { get; set; } = [];
     private List<CompareTableModel>? RecallPrecisionTables { get; set; } = [];
-    private List<CompareTableModel>? SampleSizeTables { get; set; } = [];
 
     [Inject]
     private InProgressIndicatorService? InProgressIndicator { get; set; }
@@ -49,23 +48,13 @@ public partial class PerformancePanel
                     Title = $"Recall and Precision: {run.Name}",
                     ColumnNames =
                     [
+                        new CompareTableColumn { Name = "Size" },
                         new CompareTableColumn { Name = "Recall" },
                         new CompareTableColumn { Name = "Precision" }
                     ],
                     Rows = []
                 };
                 RecallPrecisionTables!.Add(recallPrecisionTable);
-
-                var sampleSizeTable = new CompareTableModel()
-                {
-                    Title = $"Sample Size: {run.Name}",
-                    ColumnNames =
-                    [
-                        new CompareTableColumn { Name = "Size" }
-                    ],
-                    Rows = []
-                };
-                SampleSizeTables!.Add(sampleSizeTable);
             }
 
             FieldKeys = [.. hash];
@@ -80,10 +69,13 @@ public partial class PerformancePanel
             InProgressIndicator!.Show("loading performance data");
             isComparisonReady = false;
 
+            CompareTables!.ClearRows();
+            RecallPrecisionTables!.ClearRows();
+
             for (int i = 0; i < RunsResults!.Count; i++)
             {
                 // todo: this should come from the user because the user knows all the expected fields.
-                HashSet<string> uniqueValues = [];
+                HashSet<string> expectedFieldKeys = [];
 
                 HashSet<Guid> seenGroundTruths = [];    // prevent duplicate ground truths from being counted
                 Dictionary<string, int> sampleSize = [];
@@ -114,7 +106,7 @@ public partial class PerformancePanel
                         var expectedKey = a.Expected.ToLower();
                         var actualKey = string.IsNullOrEmpty(a.Actual) ? "_null_or_empty_" : a.Actual.ToLower();
 
-                        uniqueValues.Add(actualKey);
+                        expectedFieldKeys.Add(expectedKey);
 
                         if (!multiClassifer.TryGetValue(expectedKey, out Dictionary<string, int>? compareDic))
                         {
@@ -132,13 +124,16 @@ public partial class PerformancePanel
                     }
                 }
 
-                CompareTables![i].ColumnNames = uniqueValues.Select(k => new CompareTableColumn { Name = k }).ToArray();
-                CompareTables[i].Rows = multiClassifer.Select(kvp => new CompareTableRow
+                CompareTables![i].ColumnNames = expectedFieldKeys.Select(k => new CompareTableColumn { Name = k }).ToArray();
+
+                string[] actualFieldRowKeys = multiClassifer.Values.SelectMany(x => x).Select(x => x.Key).Distinct().ToArray();
+
+                CompareTables[i].Rows = actualFieldRowKeys.Select(kvp => new CompareTableRow
                 {
-                    Name = kvp.Key,
-                    Cells = uniqueValues.Select(x =>
+                    Name = kvp,
+                    Cells = multiClassifer.Select(x =>
                     {
-                        string val = multiClassifer[kvp.Key].TryGetValue(x, out var value) ? value.ToString() : "0";
+                        string val = multiClassifer[x.Key].TryGetValue(kvp, out var value) ? value.ToString() : "0";
                         return new CompareTableCell { Value = val };
                     }).ToList()
                 }).ToList();
@@ -156,8 +151,9 @@ public partial class PerformancePanel
                             Name = category,
                             Cells =
                             [
-                                new CompareTableCell{ Value ="N/A" },
-                                new CompareTableCell{ Value ="N/A" },
+                                new CompareTableCell { Value = sampleSize[category].ToString() },
+                                new CompareTableCell{ Value ="0" },
+                                new CompareTableCell{ Value ="0" },
                             ]
                         });
                         continue;
@@ -166,13 +162,13 @@ public partial class PerformancePanel
                     var truthPositive = row[category];
                     var falseNegativePlusTruePositive = row.Values.Sum();
 
-                    var recallCell = new CompareTableCell { Value = "N/A" };
+                    var recallCell = new CompareTableCell { Value = "0" };
                     if (falseNegativePlusTruePositive > 0)
                     {
                         recallCell.Value = String.Format("{0:F3}", (truthPositive / (double)falseNegativePlusTruePositive));
                     }
 
-                    var precisionCell = new CompareTableCell { Value = "N/A" };
+                    var precisionCell = new CompareTableCell { Value = "0" };
                     var falsePositivePlusTruePositive = multiClassifer.Values.SelectMany(x => x).Where(x => x.Key == category).Sum(x => x.Value);
                     if (falsePositivePlusTruePositive > 0)
                     {
@@ -182,23 +178,14 @@ public partial class PerformancePanel
                     RecallPrecisionTables![i].Rows!.Add(new CompareTableRow
                     {
                         Name = category,
-                        Cells = [recallCell, precisionCell]
+                        Cells = [new CompareTableCell { Value = sampleSize[category].ToString() }, recallCell, precisionCell]
                     });
                 }
 
-                foreach (var key in sampleSize.Keys)
-                {
-                    SampleSizeTables![i].Rows!.Add(new CompareTableRow
-                    {
-                        Name = key,
-                        Cells = [new CompareTableCell { Value = sampleSize[key].ToString() }]
-                    });
-                }
-
-                SampleSizeTables![i].Rows!.Add(new CompareTableRow
+                RecallPrecisionTables![i].Rows!.Add(new CompareTableRow
                 {
                     Name = "TOTAL",
-                    Cells = [new CompareTableCell { Value = sampleSize.Values.Sum().ToString() }]
+                    Cells = [new CompareTableCell { Value = sampleSize.Values.Sum().ToString() }, new CompareTableCell { Value = "" }, new CompareTableCell { Value = "" }]
                 });
             }
 
