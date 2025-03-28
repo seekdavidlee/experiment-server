@@ -50,7 +50,8 @@ public partial class PerformancePanel
                     [
                         new CompareTableColumn { Name = "Size" },
                         new CompareTableColumn { Name = "Recall" },
-                        new CompareTableColumn { Name = "Precision" }
+                        new CompareTableColumn { Name = "Precision" },
+                        new CompareTableColumn { Name = "F1" }
                     ],
                     Rows = []
                 };
@@ -131,13 +132,14 @@ public partial class PerformancePanel
                 CompareTables[i].Rows = actualFieldRowKeys.Select(kvp => new CompareTableRow
                 {
                     Name = kvp,
-                    Cells = multiClassifer.Select(x =>
+                    Cells = expectedFieldKeys.Order().Select(x =>
                     {
-                        string val = multiClassifer[x.Key].TryGetValue(kvp, out var value) ? value.ToString() : "0";
+                        string val = multiClassifer[x].TryGetValue(kvp, out var value) ? value.ToString() : "0";
                         return new CompareTableCell { Value = val };
                     }).ToList()
                 }).ToList();
 
+                double f1Total = 0;
                 // Precision = True Positives (TP) / (True Positives + False Positives)
                 // Recall = True Positives(TP) / (True Positives + False Negatives)
                 foreach (var category in multiClassifer.Keys)
@@ -154,6 +156,7 @@ public partial class PerformancePanel
                                 new CompareTableCell { Value = sampleSize[category].ToString() },
                                 new CompareTableCell{ Value ="0" },
                                 new CompareTableCell{ Value ="0" },
+                                new CompareTableCell{ Value ="0" },
                             ]
                         });
                         continue;
@@ -163,29 +166,45 @@ public partial class PerformancePanel
                     var falseNegativePlusTruePositive = row.Values.Sum();
 
                     var recallCell = new CompareTableCell { Value = "0" };
+                    double recall = 0;
                     if (falseNegativePlusTruePositive > 0)
                     {
-                        recallCell.Value = String.Format("{0:F3}", (truthPositive / (double)falseNegativePlusTruePositive));
+                        recall = (truthPositive / (double)falseNegativePlusTruePositive);
+                        recallCell.Value = String.Format("{0:F3}", recall);
                     }
 
                     var precisionCell = new CompareTableCell { Value = "0" };
+                    double precision = 0;
                     var falsePositivePlusTruePositive = multiClassifer.Values.SelectMany(x => x).Where(x => x.Key == category).Sum(x => x.Value);
                     if (falsePositivePlusTruePositive > 0)
                     {
-                        precisionCell.Value = String.Format("{0:F3}", (truthPositive / (double)falsePositivePlusTruePositive));
+                        precision = (truthPositive / (double)falsePositivePlusTruePositive);
+                        precisionCell.Value = String.Format("{0:F3}", precision);
                     }
+
+                    double f1 = recall > 0 || precision > 0 ? 2 * ((precision * recall) / (precision + recall)) : 0;
+                    f1Total += f1;
+                    var f1Cell = new CompareTableCell { Value = f1 > 0 ? string.Format("{0:F3}", f1) : "0" };
 
                     RecallPrecisionTables![i].Rows!.Add(new CompareTableRow
                     {
                         Name = category,
-                        Cells = [new CompareTableCell { Value = sampleSize[category].ToString() }, recallCell, precisionCell]
+                        Cells = [new CompareTableCell { Value = sampleSize[category].ToString() }, recallCell, precisionCell, f1Cell]
                     });
                 }
 
                 RecallPrecisionTables![i].Rows!.Add(new CompareTableRow
                 {
                     Name = "TOTAL",
-                    Cells = [new CompareTableCell { Value = sampleSize.Values.Sum().ToString() }, new CompareTableCell { Value = "" }, new CompareTableCell { Value = "" }]
+                    Cells = [new CompareTableCell { Value = sampleSize.Values.Sum().ToString() }, new CompareTableCell { Value = "" }, new CompareTableCell { Value = "" }, new CompareTableCell { Value = "" }]
+                });
+
+                // overall F1 score
+                double macroF1 = multiClassifer.Keys.Count > 0 ? f1Total / multiClassifer.Keys.Count : 0;
+                RecallPrecisionTables![i].Rows!.Add(new CompareTableRow
+                {
+                    Name = "F1 Score (macro avg)",
+                    Cells = [new CompareTableCell { Value = "" }, new CompareTableCell { Value = "" }, new CompareTableCell { Value = "" }, new CompareTableCell { Value = macroF1 > 0 ? string.Format("{0:F3}", macroF1) : "0" }]
                 });
             }
 
