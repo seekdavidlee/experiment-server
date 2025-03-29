@@ -1,0 +1,21 @@
+﻿<RadzenStack Orientation="Orientation.Vertical">
+    @if (IsReady)
+    {
+        foreach (var listField in ListFields)
+        {
+            <RadzenDataGrid ColumnWidth="120px" PageSize="20" AllowFiltering="true" AllowPaging="true" AllowSorting="true" Data="@listField.ValueCounts">
+                <HeaderTemplate>
+                    <RadzenRow RowGap="0" Style="width:100%">
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                            <RadzenIcon Icon="gavel" class="rz-mr-1" /><b>Field: @listField.Name</b>
+                        </RadzenText>
+                    </RadzenRow>
+                </HeaderTemplate>
+                <Columns>
+                    <RadzenDataGridColumn TItem="ListFieldValueCount" Title="Name" Property="Name" />
+                    <RadzenDataGridColumn TItem="ListFieldValueCount" Title="Size" Property="Count" />
+                </Columns>
+            </RadzenDataGrid>
+        }
+    }
+</RadzenStack>

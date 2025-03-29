@@ -42,6 +42,8 @@ public partial class EditDataSetDialog
     }
 
     private string[] validExpressions = ["string", "money"];
+    // starts with the following
+    private string[] validActionExpressions = ["list:"];
 
     private async Task SaveAsync()
     {
@@ -81,9 +83,12 @@ public partial class EditDataSetDialog
 
             if (!validExpressions.Contains(field.Expression.ToLower()))
             {
-                var all = string.Join(',', validExpressions);
-                ErrorMessage = $"invalid expression, must be one of the following: {all}";
-                return;
+                if (!validActionExpressions.Any(x => field.Expression.StartsWith(x, StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    var all = string.Join(',', validExpressions.Concat(validActionExpressions));
+                    ErrorMessage = $"invalid expression, must be one of the following: {all}";
+                    return;
+                }
             }
         }
 

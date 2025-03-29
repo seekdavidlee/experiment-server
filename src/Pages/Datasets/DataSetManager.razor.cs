@@ -51,8 +51,11 @@ public partial class DataSetManager
         await RefreshAsync();
     }
 
+    private bool IsReady { get; set; }
+
     private async Task RefreshAsync()
     {
+        IsReady = false;
         model.Items.Clear();
         var response = await Client!.GetGroundTruthImagesAsync(DatasetId!);
         if (!response.Success)
@@ -65,6 +68,7 @@ public partial class DataSetManager
         {
             await dataGrid.Reload();
         }
+        IsReady = true;
     }
 
     private void AddNew()
