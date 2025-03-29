@@ -129,9 +129,9 @@ public partial class DataSetManager
             Fields = JsonSerializer.Deserialize<DataSetModelField[]>(JsonSerializer.Serialize(DataSetModel!.Fields)),   // create a copy of all valid fields
         };
 
-        UserSession!.Items.Remove($"ListOf{nameof(GroundTruthImage)}");
+        UserSession!.Items[$"ListOf{nameof(GroundTruthImage)}"] = model.Items;
         UserSession.Items[nameof(GroundTruthImage)] = groundTruthImage;
-        NavigationManager!.NavigateTo($"datasets/{DatasetId}/images/ground-truth/{groundTruthImage.Id}");
+        NavigationManager!.NavigateTo($"datasets/{DatasetId}/images/ground-truth/{groundTruthImage.Id}?action=new");
     }
 
     private void Edit(GroundTruthImage groundTruthImage)

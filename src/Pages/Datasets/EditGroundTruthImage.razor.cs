@@ -17,6 +17,9 @@ public partial class EditGroundTruthImage
     [Parameter]
     public Guid Id { get; set; }
 
+    [SupplyParameterFromQuery(Name = "action")]
+    public string? Action { get; set; }
+
     [Inject]
     private NavigationManager? NavigationManager { get; set; }
 
@@ -51,7 +54,7 @@ public partial class EditGroundTruthImage
     {
         string modelsKey = $"ListOf{nameof(GroundTruthImage)}";
         Model = UserSession!.Items[nameof(GroundTruthImage)] as GroundTruthImage;
-        GroundTruthImages = UserSession.Items.TryGetValue(modelsKey, out object? value) ? value as List<GroundTruthImage> :  null;
+        GroundTruthImages = UserSession.Items.TryGetValue(modelsKey, out object? value) ? value as List<GroundTruthImage> : null;
         if (GroundTruthImages is not null)
         {
             CurrentIndex = GroundTruthImages.FindIndex(x => x.Id == Id);
@@ -162,6 +165,30 @@ public partial class EditGroundTruthImage
             if (string.IsNullOrEmpty(field.Value))
             {
                 ErrorMessage = "please enter a valid field value";
+                return;
+            }
+        }
+
+        foreach (var image in GroundTruthImages!.Where(x => x.Id != Model.Id))
+        {
+            if (image.Fields is null) continue;
+
+            var fieldsToMatch = image.Fields.Where(x => !x.IsSubjective).ToList();
+
+            int matchCount = 0;
+            List<string> matchFieldNames = [];
+            foreach (var f in fieldsToMatch)
+            {
+                var match = Model.Fields.SingleOrDefault(x => x.Name == f.Name && x.Value == f.Value);
+                if (match is null) continue;
+
+                matchCount++;
+                matchFieldNames.Add(f.Name!);
+            }
+
+            if (matchCount == fieldsToMatch.Count)
+            {
+                ErrorMessage = $"this ground truth image already exists with the following fields matched: {string.Join(',', matchFieldNames)}";
                 return;
             }
         }
