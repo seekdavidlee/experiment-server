@@ -94,12 +94,24 @@
                     {
                         foreach (var field in Model.Fields)
                         {
+                            string[]? listItems = null;
+                            if (field.IsList)
+                            {
+                                listItems = field.GetListFromExpression().Select(x => x.ToLower()).ToArray();
+                            }
                             <RadzenRow AlignItems="AlignItems.Center">
                                 <RadzenColumn Size="12" SizeMD="4">
                                     <span>@field.Name</span>
                                 </RadzenColumn>
                                 <RadzenColumn Size="12" SizeMD="6">
-                                    <RadzenTextBox Style="width: 100%;" @bind-Value=@field.Value />
+                                    @if (listItems is not null)
+                                    {
+                                        <RadzenDropDown Style="width:100%" @bind-Value=@field.Value Data="@listItems" />
+                                    }
+                                    else
+                                    {
+                                        <RadzenTextBox Style="width: 100%;" @bind-Value=@field.Value />
+                                    }
                                 </RadzenColumn>
                             </RadzenRow>
                         }

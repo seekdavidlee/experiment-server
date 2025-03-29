@@ -13,17 +13,15 @@ public partial class DataSetStats
 
     private readonly List<ListField> ListFields = [];
 
-    private const string ListPrefix = "list:";
-
     public bool IsReady { get; set; }
 
     protected override void OnInitialized()
     {
         if (GroundTruthImages is not null && DataSetModel is not null && DataSetModel.Fields is not null)
         {
-            foreach (var listField in DataSetModel.Fields.Where(x => x.Expression is not null && x.Expression.StartsWith(ListPrefix)))
+            foreach (var listField in DataSetModel.Fields.Where(x => x.IsList))
             {
-                var splitItems = listField.Expression![ListPrefix.Length..].Split(',').Select(x => x.Trim());
+                var splitItems = listField.GetListFromExpression();
 
                 var list = new ListField(listField.Name!, splitItems.Select(x => new ListFieldValueCount(x)).ToArray());
                 foreach (var gt in GroundTruthImages)

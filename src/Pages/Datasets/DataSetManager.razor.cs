@@ -26,6 +26,9 @@ public partial class DataSetManager
     [Inject]
     private NavigationManager? NavigationManager { get; set; }
 
+    [Inject]
+    private ILogger<DataSetManager>? Logger { get; set; }
+
     [Parameter]
     public Guid DatasetId { get; set; }
 
@@ -63,11 +66,58 @@ public partial class DataSetManager
             ErrorMessage = response.ErrorMessage;
             return;
         }
+
+        bool isDirty = false;
+        if (DataSetModel is not null && DataSetModel.Fields is not null)
+        {
+            // sync ground truth fields to latest version of dataset fields
+            foreach (var gt in response.Result)
+            {
+                if (gt.Fields is null) continue;
+
+                bool gtUpdated = false;
+                foreach (var field in gt.Fields)
+                {
+                    var dsField = DataSetModel.Fields.SingleOrDefault(x => x.Name == field.Name);
+                    if (dsField is not null)
+                    {
+                        if (dsField.Expression != field.Expression)
+                        {
+                            field.Expression = dsField.Expression;
+                            gtUpdated = true;
+                        }
+
+                        if (dsField.IsSubjective != field.IsSubjective)
+                        {
+                            field.IsSubjective = dsField.IsSubjective;
+                            gtUpdated = true;
+                        }
+                    }
+                }
+
+                if (gtUpdated)
+                {
+                    var res = await Client.SaveGroundTruthImageAsync(DatasetId, gt);
+                    if (res.Success)
+                    {
+                        Logger!.LogInformation("Ground truth image {GroundTruthDisplayName} updated to match latest version of dataset fields.", gt.DisplayName);
+                        isDirty = true;
+                    }
+                }
+            }
+        }
+
         model.Items.AddRange(response.Result);
         if (dataGrid is not null)
         {
             await dataGrid.Reload();
         }
+
+        if (isDirty)
+        {
+            await DialogService!.Alert("Meta data of some fields have been updated to match the latest version of the dataset.");
+        }
+
         IsReady = true;
     }
 

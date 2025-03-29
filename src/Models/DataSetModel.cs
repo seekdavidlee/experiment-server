@@ -30,9 +30,24 @@ public enum DataSetModelTypes
 
 public class DataSetModelField
 {
+    private const string ListPrefix = "list:";
+
     public string? Name { get; set; }
 
     public string? Expression { get; set; }
+
+    public bool IsList
+    {
+        get
+        {
+            return Expression is not null && Expression!.StartsWith(ListPrefix);
+        }
+    }
+
+    public string[] GetListFromExpression()
+    {
+        return Expression![ListPrefix.Length..].Split(',').Select(x => x.Trim()).ToArray();
+    }
 
     public string? Value { get; set; }
 
