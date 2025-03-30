@@ -276,27 +276,31 @@ public partial class EditGroundTruthImage
 
         try
         {
+            InProgressIndicator!.Show("processing...");
             // Get the file from the event
             var file = e.File;
             GroundTruthTag? sourceImageSize = null;
 
             if (file.ContentType == "application/pdf")
             {
-                StateHasChanged();
-                var pdfImages = await ImageConversionApi!.ToImagesAsync(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024));
-                if (pdfImages.Length > 0)
-                {
-                    base64Images = pdfImages.Select(x => $"data:image/jpg;base64,{x}").ToArray();
 
-                    var imageInfoResponse = await ImageConversionApi!.GetImageInfo(Convert.FromBase64String(pdfImages[0]));
+                var pdfImagesResponse = await ImageConversionApi!.ToImagesAsync(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024));
+                if (pdfImagesResponse.Success && pdfImagesResponse.Result.Length > 0)
+                {
+                    base64Images = pdfImagesResponse.Result.Select(x => $"data:image/jpg;base64,{x}").ToArray();
+
+                    var imageInfoResponse = await ImageConversionApi!.GetImageInfo(Convert.FromBase64String(pdfImagesResponse.Result[0]));
                     if (imageInfoResponse.Success)
                     {
                         ImageInfo = imageInfoResponse.Result;
                         sourceImageSize = new GroundTruthTag { Name = "source_image_size", Value = $"width:{ImageInfo!.Width}, height:{ImageInfo.Height}" };
                     }
                 }
-
-                StateHasChanged();
+                else
+                {
+                    ErrorMessage = pdfImagesResponse.ErrorMessage;
+                    return;
+                }
             }
 
 
@@ -335,6 +339,10 @@ public partial class EditGroundTruthImage
         catch (Exception ex)
         {
             ErrorMessage = $"Error displaying file: {ex.Message}";
+        }
+        finally
+        {
+            InProgressIndicator!.Hide();
         }
 
         StateHasChanged();
