@@ -108,7 +108,7 @@ public partial class ComparisonAccuracy
         }
     }
 
-    private void RefreshFailures(List<GroundTruthTagModel> filters)
+    private void RefreshFailures(List<FilterPanelModel> filters)
     {
         for (var i = 0; i < PerRunFailureComparisions.Count; i++)
         {
@@ -169,12 +169,12 @@ public partial class ComparisonAccuracy
         }
     }
 
-    private bool ShouldFilter(List<GroundTruthTagModel> filters, ExperimentRunResultModel res)
+    private bool ShouldFilter(List<FilterPanelModel> filters, ExperimentRunResultModel res)
     {
         if (filters.Count > 0 &&
             res.GroundTruth.Tags is not null &&
-            !filters.All(x => res.GroundTruth.Tags.Any(y => x.Tag.Name == y.Name &&
-                (x.Comprison == GroundTruthTagComprisons.Equal ? x.Tag.Value == y.Value : x.Tag.Value != y.Value))))
+            !filters.All(x => res.GroundTruth.Tags.Any(y => x.Name == y.Name &&
+                (x.Comprison == FilterPanelModelComprisons.Equal ? x.Value == y.Value : x.Value != y.Value))))
         {
             Logger!.LogInformation("skipping result due to filter");
             return true;
@@ -182,7 +182,7 @@ public partial class ComparisonAccuracy
         return false;
     }
 
-    private void Refresh(List<GroundTruthTagModel> filters)
+    private void Refresh(List<FilterPanelModel> filters)
     {
         Dictionary<string, CompareTableRow> fieldAccuracyRows = [];
 
@@ -244,7 +244,7 @@ public partial class ComparisonAccuracy
     }
 
 
-    private void OnFiltersChanged(List<GroundTruthTagModel> filters)
+    private void OnFiltersChanged(List<FilterPanelModel> filters)
     {
         InProgressIndicator!.Show("refreshing view from filters");
         Refresh(filters);
@@ -261,17 +261,19 @@ public class FieldAccuracy
     public int Total { get; set; }
 }
 
-public enum GroundTruthTagComprisons
+public enum FilterPanelModelComprisons
 {
     Equal,
     NotEqual
 }
 
-public class GroundTruthTagModel(GroundTruthTag Tag)
+public class FilterPanelModel
 {
     public Guid Id { get; } = Guid.NewGuid();
-    public GroundTruthTagComprisons Comprison { get; set; }
-    public GroundTruthTag Tag { get; } = Tag;
+    public FilterPanelModelComprisons Comprison { get; set; }
+
+    public string? Name { get; set; }
+    public string? Value { get; set; }
 }
 
 public class ExperimentRunResultModel(ExperimentRunResult RunResult, ExperimentMetric Metric, GroundTruthImage GroundTruth, Evaluation eval)

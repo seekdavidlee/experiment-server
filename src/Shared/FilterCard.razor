@@ -6,14 +6,14 @@
             <RadzenStack Orientation="Orientation.Horizontal">
                 @if (Keys is not null && Keys.Length > 0)
                 {
-                    <RadzenDropDown Style="width:150px" Data=@Keys @bind-Value=@Value.Tag.Name />
+                    <RadzenDropDown Style="width:150px" Data=@Keys @bind-Value=@Value.Name />
                 }
                 else
                 {
-                    <RadzenTextBox Style="width:150px" @bind-Value=@Value.Tag.Name />
+                    <RadzenTextBox Style="width:150px" @bind-Value=@Value.Name />
                 }
                 <RadzenDropDown Style="width:100px" Data=@comparisons @bind-Value=@selectedComparison />
-                <RadzenTextBox Style="width:150px" @bind-Value=@Value.Tag.Value />
+                <RadzenTextBox Style="width:150px" @bind-Value=@Value.Value />
                 <RadzenButton Click=@Save Icon="check" title="apply" />
                 <RadzenButton Click=@Close Icon="close" title="close" />
                 <RadzenButton Click=@Delete Icon="delete" title="delete" />
@@ -21,9 +21,9 @@
         }
         else
         {
-            var sign = Value.Comprison == GroundTruthTagComprisons.Equal ? "==" : "!=";
+            var sign = Value.Comprison == FilterPanelModelComprisons.Equal ? "==" : "!=";
             <RadzenRow @onclick=@Open>
-                <span>@Value.Tag.Name @sign @Value.Tag.Value</span>
+                <span>@Value.Name @sign @Value.Value</span>
             </RadzenRow>
         }
     </RadzenCard>

@@ -51,6 +51,12 @@ public partial class DataSetManager
                 return;
             }
         }
+
+        if (DataSetModel.Fields is not null)
+        {
+            KeyFilterFields = DataSetModel.Fields!.Select(x => x.Name!).ToArray();
+        }
+
         await RefreshAsync();
     }
 
@@ -59,7 +65,7 @@ public partial class DataSetManager
     private async Task RefreshAsync()
     {
         IsReady = false;
-        model.Items.Clear();
+        model.Reset();
         var response = await Client!.GetGroundTruthImagesAsync(DatasetId!);
         if (!response.Success)
         {
@@ -107,7 +113,7 @@ public partial class DataSetManager
             }
         }
 
-        model.Items.AddRange(response.Result);
+        model.Update(response.Result);
         if (dataGrid is not null)
         {
             await dataGrid.Reload();
@@ -197,5 +203,15 @@ public partial class DataSetManager
             Width = "500px",
             Height = "350px",
         });
+    }
+
+    private string[]? KeyFilterFields { get; set; }
+    private async void OnFiltersChanged(List<FilterPanelModel> filters)
+    {
+        model.ApplyFilters(filters);
+        if (dataGrid is not null)
+        {
+            await dataGrid.Reload();
+        }
     }
 }

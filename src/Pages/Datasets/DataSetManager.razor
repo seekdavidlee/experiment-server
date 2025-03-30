@@ -41,6 +41,10 @@
                                             <b>@DataSetModel.DisplayName (@model.Items.Count)</b>
                                         }
                                     </RadzenText>
+                                    @if (KeyFilterFields is not null)
+                                    {
+                                        <FiltersPanel Keys=@KeyFilterFields OnUpdates=OnFiltersChanged />
+                                    }
                                 </RadzenRow>
                             </HeaderTemplate>
                             <Columns>
