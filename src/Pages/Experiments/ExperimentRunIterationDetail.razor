@@ -6,11 +6,7 @@
 <RadzenStack Orientation="Orientation.Vertical">
     <RadzenRow AlignItems="AlignItems.Center">
         <RadzenColumn>
-            @{
-                var path = $"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{RunId}";
-                <RadzenLink Path=@path Text="Back" />
-            }
-
+            <RadzenButton Text="Back" Click=@Back />
             @if (groundTruth is not null)
             {
                 <h3>@groundTruth.DisplayName</h3>

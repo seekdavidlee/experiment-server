@@ -59,8 +59,12 @@ public partial class ExperimentRunIterationDetail
         }
         else
         {
-
-            NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{RunId}");
+            NavigationManager!.NavigateTo("javascript:history.back()");
         }
+    }
+
+    private void Back()
+    {
+        NavigationManager!.NavigateTo("javascript:history.back()");
     }
 }

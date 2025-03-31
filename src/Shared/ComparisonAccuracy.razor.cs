@@ -2,6 +2,7 @@
 using ExperimentServer.Models;
 using ExperimentServer.Services;
 using Microsoft.AspNetCore.Components;
+using System;
 using System.Text;
 
 namespace ExperimentServer.Shared;
@@ -21,6 +22,12 @@ public partial class ComparisonAccuracy
     private FileSystemApi? Client { get; set; }
 
     [Inject]
+    private UserSession? UserSession { get; set; }
+
+    [Inject]
+    private NavigationManager? NavigationManager { get; set; }
+
+    [Inject]
     private ILogger<ComparisonAccuracy>? Logger { get; set; }
 
     [Inject]
@@ -29,7 +36,7 @@ public partial class ComparisonAccuracy
     private CompareTableModel? FieldsAccuracy;
     private readonly List<CompareTableModel> PerRunFailureComparisions = [];
     private readonly List<ExpRunModel> ExpRuns = [];
-    private HashSet<string> fieldKeys = [];
+    private readonly HashSet<string> fieldKeys = [];
     private bool isInitialized;
     private bool toggleMessageColumn;
 
@@ -56,7 +63,8 @@ public partial class ComparisonAccuracy
                     new CompareTableColumn { Name = "Expected" },
                     new CompareTableColumn { Name = "Actual" },
                     new CompareTableColumn { Name = "Message", Hide = true },
-                    new CompareTableColumn { Name = "Tags" }
+                    new CompareTableColumn { Name = "Tags" },
+                    new CompareTableColumn { Name = "Actions" }
                 ]
             };
             PerRunFailureComparisions.Add(perRunFailureComparision);
@@ -132,12 +140,20 @@ public partial class ComparisonAccuracy
                         var existingPerFieldFailureComparisionRow = perRunFailureComparision.Rows!.SingleOrDefault(x => x.Name == key);
                         if (existingPerFieldFailureComparisionRow is null)
                         {
+                            var data = new Dictionary<string, object>
+                            {
+                                {"RunId", item.Id },
+                                { nameof(ExperimentRunResult), res.RunResult },
+                                { nameof(ExperimentMetric), res.Metric }
+                            };
+
                             var newPerFieldFailureComparisionRow = new CompareTableRow { Name = key, Cells = [] };
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = assertion.Field });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = assertion.Expected });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Actual ?? ""] });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Values = [assertion.Message ?? ""] });
                             newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = res.GroundTruth.Tags.GetString() });
+                            newPerFieldFailureComparisionRow.Cells!.Add(new CompareTableCell { Value = "View", IsButton = true, Data = data });
                             perRunFailureComparision.Rows!.Add(newPerFieldFailureComparisionRow);
                         }
                         else
@@ -252,6 +268,13 @@ public partial class ComparisonAccuracy
         InProgressIndicator!.Hide();
         StateHasChanged();
     }
+
+    private void HandleButtonClick(CompareTableCell cell)
+    {
+        UserSession!.Items[nameof(ExperimentRunResult)] = cell.Data![nameof(ExperimentRunResult)];
+        UserSession!.Items[nameof(ExperimentMetric)] = cell.Data![nameof(ExperimentMetric)];
+        NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs/{cell.Data!["RunId"]}/detail");
+    }
 }
 
 public class FieldAccuracy
@@ -291,6 +314,8 @@ public class ExpRunModel(FileSystemApi Client, Guid ProjectId, Guid ExperimentId
     public readonly List<ExperimentRunResultModel> Results = [];
 
     public string Name => ExperimentRun.GetIdOrDescription();
+
+    public Guid Id => ExperimentRun.Id;
 
     public async Task InitAsync(Evaluation eval)
     {

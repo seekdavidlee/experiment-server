@@ -41,7 +41,18 @@
                 foreach (var row in TableModel.Rows!)
                 {
                     <tr>
-                        <td style="border: 1px solid black;"><b>@row.Name</b></td>
+                        <td style="border: 1px solid black;">
+                            <b>
+                                @if (row.HyperLink is not null)
+                                {
+                                    <a href="@row.HyperLink">@row.Name</a>
+                                }
+                                else
+                                {
+                                    @row.Name
+                                }
+                            </b>
+                        </td>
                         @for (var x = 0; x < row.Cells!.Count; x++)
                         {
                             if (indexesToSkip.Contains(x))
@@ -50,30 +61,38 @@
                             }
                             var cell = row.Cells[x];
                             <td style="border: 1px solid black;">
-                                @if (cell.Values is not null)
+
+                                @if (cell.IsButton == true)
                                 {
-                                    for (var i = 0; i < cell.Values.Length; i++)
-                                    {
-                                        var value = cell.Values[i];
-                                        if (!string.IsNullOrEmpty(value))
-                                        {
-                                            <span>@value</span>
-                                            @if (i != cell.Values.Length - 1)
-                                            {
-                                                <hr />
-                                            }
-                                        }
-                                    }
+                                    <RadzenButton Text=@cell.Value Click="()=> ButtonClicked(cell)" />
                                 }
                                 else
                                 {
-                                    if (cell.FormatText == true)
+                                    if (cell.Values is not null)
                                     {
-                                        <p>@((MarkupString)cell.Value!.Replace("\n", "<br />"))</p>
+                                        for (var i = 0; i < cell.Values.Length; i++)
+                                        {
+                                            var value = cell.Values[i];
+                                            if (!string.IsNullOrEmpty(value))
+                                            {
+                                                <span>@value</span>
+                                                @if (i != cell.Values.Length - 1)
+                                                {
+                                                    <hr />
+                                                }
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        @cell.Value
+                                        if (cell.FormatText == true)
+                                        {
+                                            <p>@((MarkupString)cell.Value!.Replace("\n", "<br />"))</p>
+                                        }
+                                        else
+                                        {
+                                            @cell.Value
+                                        }
                                     }
                                 }
                             </td>

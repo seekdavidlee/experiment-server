@@ -13,7 +13,7 @@
                 <TableView TableModel="@FieldsAccuracy" />
                 @foreach (var failure in PerRunFailureComparisions)
                 {
-                    <TableView TableModel="@failure" />
+                    <TableView TableModel="@failure" OnButtonClicked=@HandleButtonClick />
                 }
             </RadzenRow>
         </RadzenTabsItem>

@@ -12,6 +12,8 @@ public class CompareTableRow
 {
     public string? Name { get; set; }
     public List<CompareTableCell>? Cells { get; set; }
+
+    public string? HyperLink { get; set; }
 }
 
 public class CompareTableCell
@@ -27,6 +29,10 @@ public class CompareTableCell
     /// Gets or sets whether to apply newlines as line breaks.
     /// </summary>
     public bool? FormatText { get; set; }
+
+    public bool? IsButton { get; set; }
+
+    public Dictionary<string, object>? Data { get; set; }
 }
 
 public class CompareTableColumn
