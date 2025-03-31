@@ -10,6 +10,7 @@ public partial class RunExperimentForm
     {
         Iterations = 1,
         MaxTokens = 2048,
+        ExpectJsonOutput = true,
     };
 
     private string? ErrorMessage;

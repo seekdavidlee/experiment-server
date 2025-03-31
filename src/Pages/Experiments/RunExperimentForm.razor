@@ -75,10 +75,14 @@
         <RadzenColumn SizeMD="2">
             <RadzenTextBox Disabled=@IsSaving Style="width: 100%;" @bind-Value=@model.Description />
         </RadzenColumn>
+        <RadzenColumn SizeMD="1">
+            <RadzenLabel Text="Expect Json" title="Expect JSON" />
+            <RadzenCheckBox @bind-Value=@model.ExpectJsonOutput />
+        </RadzenColumn>
         <RadzenColumn SizeMD="2">
             <RadzenLabel Text="Ground Truth Tag Filters" title="Ground Truth Tag Filters" />
         </RadzenColumn>
-        <RadzenColumn SizeMD="7">
+        <RadzenColumn SizeMD="6">
             <RadzenTextArea Disabled=@IsSaving Style="width: 100%;" @bind-Value=@GroundTruthTagFilters />
         </RadzenColumn>
     </RadzenRow>
