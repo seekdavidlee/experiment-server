@@ -1,4 +1,5 @@
 ﻿using ExperimentServer.Models;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Net;
 using System.Net.Http.Json;
@@ -202,6 +203,7 @@ public class FileSystemApi
             $"{config.Environment}/experiment-server{suffix}";
     }
 
+    private readonly Dictionary<string, GroundTruthImage> groundTruthImageCache = [];
     public async Task<ApiResponse<List<GroundTruthImage>>> GetGroundTruthImagesAsync(Guid datasetId)
     {
         List<GroundTruthImage> images = [];
@@ -215,10 +217,18 @@ public class FileSystemApi
             // todo: implement paging
             foreach (var path in results)
             {
-                var img = await httpClient!.GetFromJsonAsync<GroundTruthImage>($"{config.FileSystemApi}/storage/files/object?path={path}");
-                if (img is not null)
+                if (groundTruthImageCache.TryGetValue(path, out var cachedImg) && cachedImg is not null)
                 {
-                    images.Add(img);
+                    images.Add(cachedImg);
+                }
+                else
+                {
+                    var img = await httpClient!.GetFromJsonAsync<GroundTruthImage>($"{config.FileSystemApi}/storage/files/object?path={path}");
+                    if (img is not null)
+                    {
+                        images.Add(img);
+                        groundTruthImageCache.Add(path, img);
+                    }
                 }
             }
 
@@ -289,6 +299,12 @@ public class FileSystemApi
 
     public async Task<ApiResponse> SaveGroundTruthImageAsync(Guid datasetId, GroundTruthImage groundTruth, byte[] imageBytes)
     {
+        string path = $"{config.Environment}/experiment-server/datasets/{datasetId}/{groundTruth.Id}.json";
+        if (groundTruthImageCache.Remove(path))
+        {
+            logger.LogInformation("removed path {path} from ground truth cache", path);
+        }
+
         var json = JsonSerializer.Serialize(groundTruth);
         var response = await httpClient.PutAsync($"{PATH_PREFIX}/datasets/{datasetId}/{groundTruth.Id}.json", new StringContent(json));
         if (!response.IsSuccessStatusCode)
@@ -357,9 +373,22 @@ public class FileSystemApi
     {
         try
         {
+            if (typeof(T) == typeof(GroundTruthImage))
+            {
+                if (groundTruthImageCache.TryGetValue(path, out var image))
+                {
+                    return new ApiResponse<T?>(true, default, image as T);
+                }
+            }
             var results = await httpClient!.GetFromJsonAsync<T>($"{config.FileSystemApi}/storage/files/object?path={path}");
             if (results is not null)
             {
+                if (typeof(T) == typeof(GroundTruthImage))
+                {
+#pragma warning disable CS8604 // Possible null reference argument.
+                    groundTruthImageCache.Add(path, results as GroundTruthImage);
+#pragma warning restore CS8604 // Possible null reference argument.
+                }
                 return new ApiResponse<T?>(true, default, results);
             }
         }
@@ -408,6 +437,7 @@ public class FileSystemApi
         return logs;
     }
 
+    private readonly Dictionary<string, ExperimentRunResult> runResultsCache = [];
     public async Task<List<ExperimentRunResult>> GetExperimentRunResultsAsync(Guid projectId, Guid experimentId, Guid runId)
     {
         List<ExperimentRunResult> items = [];
@@ -419,10 +449,18 @@ public class FileSystemApi
             // todo: implement paging
             foreach (var path in results.OrderBy(GetFileNumber))
             {
-                var item = await httpClient!.GetFromJsonAsync<ExperimentRunResult>($"{config.FileSystemApi}/storage/files/object?path={path}");
-                if (item is not null)
+                if (runResultsCache.TryGetValue(path, out var result) && result is not null)
                 {
-                    items.Add(item);
+                    items.Add(result);
+                }
+                else
+                {
+                    var item = await httpClient!.GetFromJsonAsync<ExperimentRunResult>($"{config.FileSystemApi}/storage/files/object?path={path}");
+                    if (item is not null)
+                    {
+                        items.Add(item);
+                        runResultsCache.Add(path, item);
+                    }
                 }
             }
 
@@ -448,6 +486,8 @@ public class FileSystemApi
         return long.Parse(name);
     }
 
+    private readonly Dictionary<string, ExperimentMetric> metricsCache = [];
+
     public async Task<List<ExperimentMetric>> GetExperimentRunMetricsAsync(Guid projectId, Guid experimentId, Guid runId)
     {
         List<ExperimentMetric> items = [];
@@ -459,10 +499,18 @@ public class FileSystemApi
             // todo: implement paging
             foreach (var path in results.OrderBy(GetFileNumber))
             {
-                var item = await httpClient!.GetFromJsonAsync<ExperimentMetric>($"{config.FileSystemApi}/storage/files/object?path={path}");
-                if (item is not null)
+                if (metricsCache.TryGetValue(path, out var metric) && metric is not null)
                 {
-                    items.Add(item);
+                    items.Add(metric);
+                }
+                else
+                {
+                    var item = await httpClient!.GetFromJsonAsync<ExperimentMetric>($"{config.FileSystemApi}/storage/files/object?path={path}");
+                    if (item is not null)
+                    {
+                        items.Add(item);
+                        metricsCache.Add(path, item);
+                    }
                 }
             }
 
