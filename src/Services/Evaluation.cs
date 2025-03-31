@@ -58,15 +58,22 @@ public class Evaluation
                     if (field.Expression == "money" && field.Value!.EndsWith(".00") && !actual.Contains('.'))
                     {
                         // assume .00 if missing, since it is the same anyways
-                        compare = string.Compare(field.Value!, $"{actual}.00", true) == 0;
+                        compare = string.Compare(field.Value!, $"{actual.Replace(",", "")}.00", true) == 0;
                     }
                     else if (field.Expression == "money" && !field.Value!.Contains('.') && actual.EndsWith(".00"))
                     {
-                        compare = string.Compare($"{field.Value!}.00", actual, true) == 0;
+                        compare = string.Compare($"{field.Value!}.00", actual.Replace(",", ""), true) == 0;
                     }
                     else
                     {
-                        compare = string.Compare(field.Value!, actual, true) == 0;
+                        if (field.Expression == "money")
+                        {
+                            compare = string.Compare(field.Value!, actual.Replace(",", ""), true) == 0;
+                        }
+                        else
+                        {
+                            compare = string.Compare(field.Value!, actual, true) == 0;
+                        }
                     }
                     assertions.Add(new AssertionModel(field.Name!, field.Value!, actual, compare, default));
                 }
