@@ -8,7 +8,7 @@
         </RadzenStack>
     </RadzenRow>
     <RadzenRow>
-        <RadzenTabs RenderMode="TabRenderMode.Client">
+        <RadzenTabs RenderMode="TabRenderMode.Client" SelectedIndex=@tabSelectedIndex Change=@OnTabChanged>
             <Tabs>
                 <RadzenTabsItem Text="Inputs/Outputs">
                     <RadzenRow>

@@ -227,7 +227,7 @@ public class FileSystemApi
                     if (img is not null)
                     {
                         images.Add(img);
-                        groundTruthImageCache.Add(path, img);
+                        groundTruthImageCache[path] = img;
                     }
                 }
             }
@@ -459,7 +459,7 @@ public class FileSystemApi
                     if (item is not null)
                     {
                         items.Add(item);
-                        runResultsCache.Add(path, item);
+                        runResultsCache[path] = item;
                     }
                 }
             }
@@ -509,7 +509,7 @@ public class FileSystemApi
                     if (item is not null)
                     {
                         items.Add(item);
-                        metricsCache.Add(path, item);
+                        metricsCache[path] = item;
                     }
                 }
             }

@@ -1,7 +1,6 @@
 ﻿
 using ExperimentServer.Models;
 using ExperimentServer.Services;
-using ExperimentServer.Shared;
 using Microsoft.AspNetCore.Components;
 
 namespace ExperimentServer.Pages.Experiments;
@@ -33,6 +32,9 @@ public partial class ExperimentsComparison
     private InProgressIndicatorService? InProgressIndicator { get; set; }
 
     private List<ExperimentRun>? experimentRuns;
+    private const string TabSelectedKey = $"{nameof(ExperimentsComparison)}TabKey";
+    private int tabSelectedIndex;
+
     protected override async Task OnInitializedAsync()
     {
         if (UserSession!.Items.TryGetValue(nameof(ExperimentsComparison), out var experimentRunsObj))
@@ -67,10 +69,20 @@ public partial class ExperimentsComparison
             experimentRuns = runs;
             InProgressIndicator!.Hide();
         }
+
+        if (UserSession.Items.TryGetValue(TabSelectedKey, out var tabObj) && tabObj is int tabIndex && tabIndex > 0)
+        {
+            tabSelectedIndex = tabIndex;
+        }
     }
 
     private void Back()
     {
         NavigationManager!.NavigateTo($"/projects/{ProjectId}/experiments/{ExperimentId}/runs");
+    }
+
+    private void OnTabChanged(int index)
+    {
+        UserSession!.Items[TabSelectedKey] = index;
     }
 }
