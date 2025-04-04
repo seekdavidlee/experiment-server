@@ -55,6 +55,13 @@ public class Evaluation
                 {
                     bool compare;
                     string actual = property.GetString()!;
+
+                    // cleanup money field
+                    if (field.Expression == "money" && actual.StartsWith("$"))
+                    {
+                        actual = actual[1..];
+                    }
+
                     if (field.Expression == "money" && field.Value!.EndsWith(".00") && !actual.Contains('.'))
                     {
                         // assume .00 if missing, since it is the same anyways
