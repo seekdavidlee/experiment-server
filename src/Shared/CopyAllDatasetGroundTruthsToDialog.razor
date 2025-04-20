@@ -23,6 +23,12 @@
         <RadzenRow>
             <RadzenDropDown Style="width:100%" @bind-Value=@SelectedDataset Data=@Datasets TextProperty="DisplayName" />
         </RadzenRow>
+        <RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <span>Resize percentage:</span>
+                <RadzenDropDown Style="width:50%" @bind-Value=@SelectedPercentage Data=@ResizePercentages />
+            </RadzenStack>
+        </RadzenRow>
         <RadzenRow AlignItems="AlignItems.End">
             <RadzenButton Click=@(args => StartCopyAsync()) Text="Copy" ButtonStyle="ButtonStyle.Primary" />
             <RadzenButton Click=@Cancel Text="Cancel" ButtonStyle="ButtonStyle.Light" />

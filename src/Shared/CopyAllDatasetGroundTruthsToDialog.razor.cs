@@ -25,6 +25,9 @@ public partial class CopyAllDatasetGroundTruthsToDialog
     [Parameter]
     public Guid ExcludeDatasetId { get; set; }
 
+    [Inject]
+    public ImageConversionApi? ImageConversionApi { get; set; }
+
     private DataSetModel? SelectedDataset { get; set; }
 
     private string? ErrorMessage;
@@ -41,6 +44,8 @@ public partial class CopyAllDatasetGroundTruthsToDialog
     }
 
     private double Progress { get; set; }
+    private readonly int[] ResizePercentages = [25, 30, 50, 75, 100];
+    private int SelectedPercentage { get; set; } = 100;
 
     public async Task StartCopyAsync()
     {
@@ -62,6 +67,28 @@ public partial class CopyAllDatasetGroundTruthsToDialog
                 continue;
             }
 
+            var imgData = imgResponse.Result;
+            int? originalWidth = null;
+            int? originalHeight = null;
+            var originalImageInfoResponse = await ImageConversionApi!.GetImageInfo(imgData!);
+            if (originalImageInfoResponse.Success)
+            {
+                originalHeight = originalImageInfoResponse!.Result!.Height;
+                originalWidth = originalImageInfoResponse!.Result.Width;
+            }
+
+            if (SelectedPercentage != 100)
+            {
+                var result = await ImageConversionApi!.ResizeImageInfo(imgData, SelectedPercentage);
+                if (!result.Success)
+                {
+                    ErrorCount++;
+                    continue;
+                }
+
+                imgData = result.Result;
+            }
+
             var existing = await Client!.GetGroundTruthImagesAsync(SelectedDataset.Id);
             if (!existing.Success)
             {
@@ -79,6 +106,20 @@ public partial class CopyAllDatasetGroundTruthsToDialog
             copy.Id = Guid.NewGuid();
 
             List<GroundTruthTag> copyTags = [new GroundTruthTag { Name = "image_dataset_source", Value = $"Dataset: {gt!.DisplayName}" }];
+            if (originalWidth is not null && originalHeight is not null)
+            {
+                copyTags.Add(new GroundTruthTag { Name = "image_original_size", Value = $"width:{originalWidth}, height:{originalHeight}" });
+            }
+
+            if (SelectedPercentage != 100)
+            {
+                var imageInfoResponse = await ImageConversionApi!.GetImageInfo(imgData!);
+                if (imageInfoResponse.Success)
+                {
+                    copyTags.Add(new GroundTruthTag { Name = "image_new_size", Value = $"width:{imageInfoResponse.Result!.Width}, height:{imageInfoResponse.Result.Height}" });
+                }
+            }
+
             if (copy.Tags is null)
             {
                 copy.Tags = [.. copyTags];
@@ -90,7 +131,7 @@ public partial class CopyAllDatasetGroundTruthsToDialog
                 copy.Tags = [.. list];
             }
 
-            var res = await Client!.SaveGroundTruthImageAsync(SelectedDataset.Id, copy, imgResponse.Result);
+            var res = await Client!.SaveGroundTruthImageAsync(SelectedDataset.Id, copy, imgData!);
             if (!res.Success)
             {
                 ErrorCount++;
